@@ -1,40 +1,39 @@
-
-import React from 'react'; 
 import { SlideMenu } from 'primereact/slidemenu';
 import { MenuItem } from 'primereact/menuitem';
 import 'primeicons/primeicons.css';
+import '@/styles/menu.css';
+import { BrowserRouter as useNavigate, Link, useLocation } from 'react-router-dom';
+import { classNames } from 'primereact/utils';
+import { useState } from 'react';
 
-export default function BasicDemo() {
+export default function MenuLeft() {
+    const location = useLocation();
+    
+    const [activeItem, setActiveItem] = useState(location.pathname);
+
+    const customeTemplate = (label: string, icon: string, to: string) => {
+        let isActive = activeItem === to;
+        return (
+            <Link className={classNames('p-menuitem-link',{isActive})} to={to}
+                onClick={() => setActiveItem(to)}>
+                <span className={classNames("p-menuitem-icon", { [icon]: true })}></span>
+                <span className="p-menuitem-text">{label}</span>
+            </Link>
+        );
+    }
+
     const items: MenuItem[] = [
         {
-            label:'File',
-            icon:'pi pi-fw pi-file',
+            template: customeTemplate('Home', 'pi pi-home', '/'),
         },
         {
-            label:'Edit',
-            icon:'pi pi-fw pi-pencil',
+            template: customeTemplate('Product', 'pi pi-info', '/products'),
         },
-        {
-            label:'Users',
-            icon:'pi pi-fw pi-user',
-        },
-        {
-            label:'Events',
-            icon:'pi pi-fw pi-calendar',
-        },
-        {
-            separator:true
-        },
-        {
-            label:'Quit',
-            icon:'pi pi-fw pi-power-off'
-        }
     ];
 
     return (
         <div className="card flex justify-content-center">
-            <SlideMenu model={items} viewportHeight={220} menuWidth={175}></SlideMenu>
+            <SlideMenu model={items}></SlideMenu>
         </div>
     )
 }
-        
