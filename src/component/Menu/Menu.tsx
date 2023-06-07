@@ -14,7 +14,7 @@ export default function MenuLeft() {
     const customeTemplate = (label: string, icon: string, to: string) => {
         let isActive = activeItem === to;
         return (
-            <Link className={classNames('p-menuitem-link',{isActive})} to={to}
+            <Link className={classNames('p-menuitem-link', {isActive})} to={to}
                 onClick={() => setActiveItem(to)}>
                 <span className={classNames("p-menuitem-icon", { [icon]: true })}></span>
                 <span className="p-menuitem-text">{label}</span>
