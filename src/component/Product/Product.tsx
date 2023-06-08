@@ -14,24 +14,33 @@ import { InputNumber, InputNumberChangeEvent } from 'primereact/inputnumber';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
-import ApiGetProducts, { Product } from '@/services/productApi';
+import { ApiGetProducts, ApiGetCategories, Categories, Product } from '@/services/productApi';
 import { formatCurrency } from '../Common';
+import '@/styles/product.css'
 
 export default function ProductsDemo() {
+  const current = new Date();
   let emptyProduct: Product = {
-    id: null,
-    code: '',
+    id: '',
+    idCategory: '',
     name: '',
-    image: null,
-    description: '',
-    category: null,
-    price: 0,
-    quantity: 0,
-    rating: 0,
-    inventoryStatus: 'INSTOCK',
+    brand: '',
+    unsignedName: '',
+    idFake: '',
+    unit: '',
+    image: '',
+    importPrice: 0,
+    wholeSalePrice: 0,
+    retailPrice: 0,
+    numberImport: 0,
+    discount: 0,
+    warrantyTime: 0,
+    dateCreate: null,
+    dateFix: null,
   };
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Categories[]>([]);
   const [productDialog, setProductDialog] = useState<boolean>(false);
   const [deleteProductDialog, setDeleteProductDialog] = useState<boolean>(false);
   const [deleteProductsDialog, setDeleteProductsDialog] = useState<boolean>(false);
@@ -43,12 +52,19 @@ export default function ProductsDemo() {
   const dt = useRef<DataTable<Product[]>>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDataProducts = async () => {
       const products = await ApiGetProducts();
       setProducts(products);
     }
 
-    fetchData();
+    const fetchDataCategories = async () => {
+      const categories = await ApiGetCategories();
+      setCategories(categories);
+    }
+
+
+    fetchDataProducts();
+    fetchDataCategories();
   }, []);
 
   const openNew = () => {
@@ -155,12 +171,12 @@ export default function ProductsDemo() {
     toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
   };
 
-  const onCategoryChange = (e: RadioButtonChangeEvent) => {
-    let _product = { ...product };
+  // const onCategoryChange = (e: RadioButtonChangeEvent) => {
+  //   let _product = { ...product };
 
-    _product['category'] = e.value;
-    setProduct(_product);
-  };
+  //   _product['category'] = e.value;
+  //   setProduct(_product);
+  // };
 
   const onInputChange = (e: any, name: string) => {
     const val = (e.target && e.target.value) || '';
@@ -186,67 +202,85 @@ export default function ProductsDemo() {
     return (
       <div className="flex flex-wrap gap-2">
         <Button label="New" icon="pi pi-plus" severity="success" onClick={openNew} />
-        <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} 
-        disabled={!selectedProducts || !selectedProducts.length} />
+        <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected}
+          disabled={!selectedProducts || !selectedProducts.length} />
       </div>
     );
   };
 
   const rightToolbarTemplate = () => {
-    return <Button label="Export" icon="pi pi-upload" className="p-button-help" 
-    onClick={exportCSV} />;
+    return <Button label="Export" icon="pi pi-upload" className="p-button-help"
+      onClick={exportCSV} />;
   };
 
   const imageBodyTemplate = (rowData: Product) => {
-    return <img src={`https://primefaces.org/cdn/primereact/images/product/${rowData.image}`}
-     alt={rowData.image!} className="shadow-2 border-round" style={{ width: '64px' }} />;
+    return <img src={`${rowData.image}`}
+      alt={rowData.image!} className="shadow-2 border-round" style={{ width: '64px' }} />;
   };
 
-  const priceBodyTemplate = (rowData: Product) => {
-    return formatCurrency(rowData.price);
+  const importPriceBodyTemplate = (rowData: Product) => {
+    return formatCurrency(rowData.importPrice);
   };
 
-  const ratingBodyTemplate = (rowData: Product) => {
-    return <Rating value={rowData.rating} readOnly cancel={false} />;
+  const wholeSalePriceBodyTemplate = (rowData: Product) => {
+    return formatCurrency(rowData.retailPrice);
   };
 
-  const statusBodyTemplate = (rowData: Product) => {
-    return <Tag value={rowData.inventoryStatus} severity={getSeverity(rowData)}></Tag>;
+  const retailPriceBodyTemplate = (rowData: Product) => {
+    return formatCurrency(rowData.retailPrice);
   };
+
+  const categoryBodyTemplate = (rowData: Product) => {
+    const category = categories.find((item) => item.id === rowData.idCategory);
+  
+    if (category) {
+      return <span>{category.name}</span>;
+    }
+  
+    return null;
+  };
+
+  // const ratingBodyTemplate = (rowData: Product) => {
+  //   return <Rating value={rowData.rating} readOnly cancel={false} />;
+  // };
+
+  // const statusBodyTemplate = (rowData: Product) => {
+  //   return <Tag value={rowData.inventoryStatus} severity={getSeverity(rowData)}></Tag>;
+  // };
 
   const actionBodyTemplate = (rowData: Product) => {
     return (
       <React.Fragment>
         <Button icon="pi pi-pencil" rounded outlined className="mr-2"
-            onClick={() => editProduct(rowData)} />
+          onClick={() => editProduct(rowData)} />
         <Button icon="pi pi-trash" rounded outlined severity="danger"
-            onClick={() => confirmDeleteProduct(rowData)} />
+          onClick={() => confirmDeleteProduct(rowData)} />
       </React.Fragment>
     );
   };
 
-  const getSeverity = (product: Product) => {
-    switch (product.inventoryStatus) {
-      case 'INSTOCK':
-        return 'success';
+  // const getSeverity = (product: Product) => {
+  //   switch (product.inventoryStatus) {
+  //     case 'INSTOCK':
+  //       return 'success';
 
-      case 'LOWSTOCK':
-        return 'warning';
+  //     case 'LOWSTOCK':
+  //       return 'warning';
 
-      case 'OUTOFSTOCK':
-        return 'danger';
+  //     case 'OUTOFSTOCK':
+  //       return 'danger';
 
-      default:
-        return null;
-    }
-  };
+  //     default:
+  //       return null;
+  //   }
+  // };
 
   const header = (
     <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
       <h4 className="m-0">Manage Products</h4>
       <span className="p-input-icon-left">
         <i className="pi pi-search" />
-        <InputText type="search" placeholder="Search..." 
+        <InputText type="search" placeholder="Search..."
           onInput={(e) => { const target = e.target as HTMLInputElement; setGlobalFilter(target.value); }} />
       </span>
     </div>
@@ -271,12 +305,12 @@ export default function ProductsDemo() {
   );
 
   return (
-    <div className='card'>
+    <>
       <Toast ref={toast} />
       <div className="card">
-        <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
+        <Toolbar className="mb-1" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
 
-        <DataTable ref={dt} value={products} selection={selectedProducts}
+        <DataTable ref={dt} value={products} selection={selectedProducts} removableSort
           onSelectionChange={(e) => {
             if (Array.isArray(e.value)) {
               setSelectedProducts(e.value);
@@ -286,36 +320,45 @@ export default function ProductsDemo() {
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
           <Column selectionMode="multiple" exportable={false}></Column>
-          <Column field="code" header="Code" sortable style={{ minWidth: '12rem' }}></Column>
-          <Column field="name" header="Name" sortable style={{ minWidth: '16rem' }}></Column>
-          <Column field="image" header="Image" body={imageBodyTemplate}></Column>
-          <Column field="price" header="Price" body={priceBodyTemplate} sortable style={{ minWidth: '8rem' }}></Column>
-          <Column field="category" header="Category" sortable style={{ minWidth: '10rem' }}></Column>
-          <Column field="rating" header="Reviews" body={ratingBodyTemplate} sortable style={{ minWidth: '12rem' }}></Column>
-          <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable style={{ minWidth: '12rem' }}></Column>
-          <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '12rem' }}></Column>
+          <Column field="id" header="Mã" exportable={false} style={{ maxWidth: '8rem' }}></Column>
+          <Column field="idFake" header="Mã tắt" exportable={false} style={{ minWidth: '6rem' }}></Column>
+          <Column field="name" header="Tên" sortable style={{ width: '17rem' }}></Column>
+          <Column field="brand" header="Thương hiệu" style={{ minWidth: '8rem' }}></Column>
+          <Column field="unit" header="Đơn vị" sortable style={{ minWidth: '8rem' }}></Column>
+          <Column field="image" header="Ảnh" exportable={false} body={imageBodyTemplate}></Column>
+          <Column field="importPrice" header="Giá nhập" exportable={false} body={importPriceBodyTemplate} sortable style={{ minWidth: '8rem' }}></Column>
+          <Column field="idCategory" header="Loại" body={categoryBodyTemplate} sortable style={{ minWidth: '8rem' }}></Column>
+          <Column field="numberImport" header="Số lượng nhập" exportable={false} sortable style={{ minWidth: '8rem' }}></Column>
+          <Column field="retailPrice" header="Giá bán lẻ" body={retailPriceBodyTemplate} sortable style={{ minWidth: '8rem' }}></Column>
+          <Column field="wholeSalePrice" header="Giá bán sĩ" body={wholeSalePriceBodyTemplate} sortable style={{ minWidth: '8rem' }}></Column>
+          {/* <Column field="rating" header="Reviews" body={ratingBodyTemplate} sortable style={{ minWidth: '12rem' }}></Column> */}
+          {/* <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable style={{ minWidth: '12rem' }}></Column> */}
+          <Column field="discount" header="Chiết khấu" sortable style={{ minWidth: '6rem' }}></Column>
+          <Column field="warrantyTime" header="Bảo hành" sortable style={{ minWidth: '6rem' }}></Column>
+          <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '10rem' }}></Column>
         </DataTable>
       </div>
 
       <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }}
-              header="Product Details" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
-        {product.image && <img src={`https://primefaces.org/cdn/primereact/images/product/${product.image}`} 
-        alt={product.image} className="product-image block m-auto pb-3" />}
+        header="Product Details" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
+        {product.image && <img src={`https://primefaces.org/cdn/primereact/images/product/${product.image}`}
+          alt={product.image} className="product-image block m-auto pb-3" />}
         <div className="field">
           <label htmlFor="name" className="font-bold">
             Name
           </label>
-          <InputText id="name" value={product.name} onChange={(e) => onInputChange(e, 'name')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.name })} />
+          <InputText id="name" value={product.name} onChange={(e) => onInputChange(e, 'name')}
+            required autoFocus className={classNames({ 'p-invalid': submitted && !product.name })} />
           {submitted && !product.name && <small className="p-error">Name is required.</small>}
         </div>
         <div className="field">
           <label htmlFor="description" className="font-bold">
             Description
           </label>
-          <InputTextarea id="description" value={product.description} onChange={(e) => onInputChange(e, 'description')} required rows={3} cols={20} />
+          <InputTextarea id="description" value="" onChange={(e) => onInputChange(e, 'description')} required rows={3} cols={20} />
         </div>
 
-        <div className="field">
+        {/* <div className="field">
           <label className="mb-3 font-bold">Category</label>
           <div className="formgrid grid">
             <div className="field-radiobutton col-6">
@@ -335,26 +378,26 @@ export default function ProductsDemo() {
               <label htmlFor="category4">Fitness</label>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="formgrid grid">
           <div className="field col">
             <label htmlFor="price" className="font-bold">
               Price
             </label>
-            <InputNumber id="price" value={product.price} onValueChange={(e) => onInputNumberChange(e, 'price')} mode="currency" currency="USD" locale="en-US" />
+            <InputNumber id="price" value={product.retailPrice} onValueChange={(e) => onInputNumberChange(e, 'price')} mode="currency" currency="USD" locale="en-US" />
           </div>
           <div className="field col">
             <label htmlFor="quantity" className="font-bold">
               Quantity
             </label>
-            <InputNumber id="quantity" value={product.quantity} onValueChange={(e) => onInputNumberChange(e, 'quantity')} />
+            <InputNumber id="quantity" value={product.numberImport} onValueChange={(e) => onInputNumberChange(e, 'quantity')} />
           </div>
         </div>
       </Dialog>
 
       <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm"
-              modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+        modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
         <div className="confirmation-content">
           <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
           {product && (
@@ -366,12 +409,12 @@ export default function ProductsDemo() {
       </Dialog>
 
       <Dialog visible={deleteProductsDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm"
-              modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
+        modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
         <div className="confirmation-content">
           <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
           {product && <span>Are you sure you want to delete the selected products?</span>}
         </div>
       </Dialog>
-    </div>
+    </>
   );
 }
