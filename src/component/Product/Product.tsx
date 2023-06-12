@@ -15,12 +15,16 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
 import { ApiGetProducts, ApiGetCategories, Categories, Product } from '@/services/productApi';
-import { formatCurrency } from '../Common';
-import '@/styles/product.css'
+import { formatCurrency, handleImageError } from '../Common';
+import '@/styles/product.css';
+
+interface FileUploadState {
+  files: File[];
+}
 
 export default function ProductsDemo() {
   const current = new Date();
-  let emptyProduct: Product = {
+  const emptyProduct: Product = {
     id: '',
     idCategory: '',
     name: '',
@@ -29,15 +33,20 @@ export default function ProductsDemo() {
     idFake: '',
     unit: '',
     image: '',
+    quantity: 0,
     importPrice: 0,
     wholeSalePrice: 0,
     retailPrice: 0,
     numberImport: 0,
-    discount: 0,
+    description: '',
     warrantyTime: 0,
     dateCreate: null,
     dateFix: null,
   };
+
+  const [fileImage, setFileImage] = useState<FileUploadState>({
+    files: []
+  });
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Categories[]>([]);
@@ -61,7 +70,6 @@ export default function ProductsDemo() {
       const categories = await ApiGetCategories();
       setCategories(categories);
     }
-
 
     fetchDataProducts();
     fetchDataCategories();
@@ -171,13 +179,18 @@ export default function ProductsDemo() {
     toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
   };
 
-  // const onCategoryChange = (e: RadioButtonChangeEvent) => {
-  //   let _product = { ...product };
+  const onCategoryChange = (e: RadioButtonChangeEvent) => {
+    let _product = { ...product };
 
-  //   _product['category'] = e.value;
-  //   setProduct(_product);
-  // };
+    _product['idCategory'] = e.value;
+    setProduct(_product);
+  };
+  const onBrandChange = (e: RadioButtonChangeEvent) => {
+    let _product = { ...product };
 
+    _product['brand'] = e.value;
+    setProduct(_product);
+  };
   const onInputChange = (e: any, name: string) => {
     const val = (e.target && e.target.value) || '';
     let _product = { ...product };
@@ -213,9 +226,18 @@ export default function ProductsDemo() {
       onClick={exportCSV} />;
   };
 
+
+
   const imageBodyTemplate = (rowData: Product) => {
-    return <img src={`${rowData.image}`}
-      alt={rowData.image!} className="shadow-2 border-round" style={{ width: '64px' }} />;
+    return (
+      <img
+        src={`https://drive.google.com/uc?export=view&id=${rowData.image}`}
+        alt={rowData.image!}
+        className="shadow-2 border-round"
+        style={{ width: '64px' }}
+        onError={handleImageError}
+      />
+    );
   };
 
   const importPriceBodyTemplate = (rowData: Product) => {
@@ -223,7 +245,7 @@ export default function ProductsDemo() {
   };
 
   const wholeSalePriceBodyTemplate = (rowData: Product) => {
-    return formatCurrency(rowData.retailPrice);
+    return formatCurrency(rowData.wholeSalePrice);
   };
 
   const retailPriceBodyTemplate = (rowData: Product) => {
@@ -232,14 +254,51 @@ export default function ProductsDemo() {
 
   const categoryBodyTemplate = (rowData: Product) => {
     const category = categories.find((item) => item.id === rowData.idCategory);
-  
+
     if (category) {
       return <span>{category.name}</span>;
     }
-  
+
     return null;
   };
-
+  const templateCategories = () => {
+    return categories.map(ca => {
+      return (
+        <div key={ca.id} className="field-radiobutton col-6">
+          <RadioButton inputId={ca.id} name="idCategory" value={ca.id}
+            onChange={onCategoryChange}
+            checked={product.idCategory === ca.id} />
+          <label htmlFor={ca.id}>{ca.name}</label>
+        </div>
+      );
+    })
+  };
+  const templateBrand = () => {
+    return (
+      <>
+        <div className="field-radiobutton col-6">
+          <RadioButton inputId="senko" name="brand" value="senko"
+            onChange={onBrandChange} checked={product.brand === 'senko'} />
+          <label htmlFor="senko">Senko</label>
+        </div>
+        <div className="field-radiobutton col-6">
+          <RadioButton inputId="toshiba" name="brand" value="toshiba"
+            onChange={onBrandChange} checked={product.brand === 'toshiba'} />
+          <label htmlFor="toshiba">Toshiba</label>
+        </div>
+        <div className="field-radiobutton col-6">
+          <RadioButton inputId="lg" name="brand" value="lg"
+            onChange={onBrandChange} checked={product.brand === 'lg'} />
+          <label htmlFor="lg">LG</label>
+        </div>
+        <div className="field-radiobutton col-6">
+          <RadioButton inputId="sony" name="brand" value="sony"
+            onChange={onBrandChange} checked={product.brand === 'sony'} />
+          <label htmlFor="sony">Sony</label>
+        </div>
+      </>
+    );
+  };
   // const ratingBodyTemplate = (rowData: Product) => {
   //   return <Rating value={rowData.rating} readOnly cancel={false} />;
   // };
@@ -303,7 +362,22 @@ export default function ProductsDemo() {
       <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteSelectedProducts} />
     </React.Fragment>
   );
+  const handleSelectFile = async (event: any) => {
+    const file = event.files[0];
+    const reader = new FileReader();
+    let blob = await fetch(file.objectURL).then((r) => r.blob());
 
+    reader.readAsDataURL(blob);
+    
+    reader.onloadend = function () {
+      const arrayBuffer = reader.result as ArrayBuffer;
+      const binaryData = new Uint8Array(arrayBuffer);
+
+      setFileImage({ files: [new File([binaryData], file.name, { type: file.type })] });
+    };
+  };
+
+  console.log(fileImage)
   return (
     <>
       <Toast ref={toast} />
@@ -320,8 +394,7 @@ export default function ProductsDemo() {
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
           <Column selectionMode="multiple" exportable={false}></Column>
-          <Column field="id" header="Mã" exportable={false} style={{ maxWidth: '8rem' }}></Column>
-          <Column field="idFake" header="Mã tắt" exportable={false} style={{ minWidth: '6rem' }}></Column>
+          <Column field="idFake" header="Mã" exportable={false} style={{ minWidth: '6rem' }}></Column>
           <Column field="name" header="Tên" sortable style={{ width: '17rem' }}></Column>
           <Column field="brand" header="Thương hiệu" style={{ minWidth: '8rem' }}></Column>
           <Column field="unit" header="Đơn vị" sortable style={{ minWidth: '8rem' }}></Column>
@@ -341,58 +414,85 @@ export default function ProductsDemo() {
 
       <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }}
         header="Product Details" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
-        {product.image && <img src={`https://primefaces.org/cdn/primereact/images/product/${product.image}`}
-          alt={product.image} className="product-image block m-auto pb-3" />}
-        <div className="field">
-          <label htmlFor="name" className="font-bold">
-            Name
-          </label>
-          <InputText id="name" value={product.name} onChange={(e) => onInputChange(e, 'name')}
-            required autoFocus className={classNames({ 'p-invalid': submitted && !product.name })} />
-          {submitted && !product.name && <small className="p-error">Name is required.</small>}
-        </div>
-        <div className="field">
-          <label htmlFor="description" className="font-bold">
-            Description
-          </label>
-          <InputTextarea id="description" value="" onChange={(e) => onInputChange(e, 'description')} required rows={3} cols={20} />
-        </div>
-
-        {/* <div className="field">
-          <label className="mb-3 font-bold">Category</label>
-          <div className="formgrid grid">
-            <div className="field-radiobutton col-6">
-              <RadioButton inputId="category1" name="category" value="Accessories" onChange={onCategoryChange} checked={product.category === 'Accessories'} />
-              <label htmlFor="category1">Accessories</label>
-            </div>
-            <div className="field-radiobutton col-6">
-              <RadioButton inputId="category2" name="category" value="Clothing" onChange={onCategoryChange} checked={product.category === 'Clothing'} />
-              <label htmlFor="category2">Clothing</label>
-            </div>
-            <div className="field-radiobutton col-6">
-              <RadioButton inputId="category3" name="category" value="Electronics" onChange={onCategoryChange} checked={product.category === 'Electronics'} />
-              <label htmlFor="category3">Electronics</label>
-            </div>
-            <div className="field-radiobutton col-6">
-              <RadioButton inputId="category4" name="category" value="Fitness" onChange={onCategoryChange} checked={product.category === 'Fitness'} />
-              <label htmlFor="category4">Fitness</label>
-            </div>
-          </div>
-        </div> */}
-
+        <FileUpload name="file" url={'/api/upload'} accept="image/*" mode='basic'
+          maxFileSize={3000000}
+          onSelect={handleSelectFile}
+          emptyTemplate={
+            product.image && <img style={{ maxWidth: 300 }}
+              src={`https://drive.google.com/uc?export=view&id=${product.image}`}
+              onError={handleImageError} alt={product.image}
+              className="product-image block m-auto pb-3" />
+          } />
         <div className="formgrid grid">
           <div className="field col">
-            <label htmlFor="price" className="font-bold">
-              Price
+            <label htmlFor="name" className="font-bold">
+              Tên
             </label>
-            <InputNumber id="price" value={product.retailPrice} onValueChange={(e) => onInputNumberChange(e, 'price')} mode="currency" currency="USD" locale="en-US" />
+            <InputText id="name" value={product.name} onChange={(e) => onInputChange(e, 'name')}
+              required autoFocus className={classNames({ 'p-invalid': submitted && !product.name })} />
+            {submitted && !product.name && <small className="p-error">Tên không được để trống.</small>}
+          </div>
+          <div className="field col">
+            <label htmlFor="unit" className="font-bold">
+              Đơn vị tính
+            </label>
+            <InputText id="unit" value={product.unit} onChange={(e) => onInputChange(e, 'unit')}
+              required autoFocus className={classNames({ 'p-invalid': submitted && !product.name })} />
+            {submitted && !product.unit && <small className="p-error">Đơn vị tính không được để trống.</small>}
+          </div>
+        </div>
+
+        <div className="field">
+          <label className="mb-3 font-bold">Thể loại</label>
+          <div className="formgrid grid">
+            {templateCategories()}
+          </div>
+        </div>
+        <div className="field">
+          <label className="mb-3 font-bold">Thương hiệu</label>
+          <div className="formgrid grid">
+            {templateBrand()}
+          </div>
+        </div>
+        <div className="formgrid grid">
+          <div className="field col">
+            <label htmlFor="importPrice" className="font-bold">
+              Giá nhập
+            </label>
+            <InputNumber id="importPrice" value={product.retailPrice} onValueChange={(e) => onInputNumberChange(e, 'importPrice')} mode="currency" currency="VND" locale="vi-VN" />
           </div>
           <div className="field col">
             <label htmlFor="quantity" className="font-bold">
-              Quantity
+              Số lượng
             </label>
             <InputNumber id="quantity" value={product.numberImport} onValueChange={(e) => onInputNumberChange(e, 'quantity')} />
           </div>
+          <div className="field col">
+            <label htmlFor="warrantyTime" className="font-bold">
+              Bảo hành
+            </label>
+            <InputNumber id="warrantyTime" value={product.numberImport} onValueChange={(e) => onInputNumberChange(e, 'warrantyTime')} />
+          </div>
+        </div>
+        <div className="formgrid grid">
+          <div className="field col">
+            <label htmlFor="retailPrice" className="font-bold">
+              Bán lẻ
+            </label>
+            <InputNumber id="retailPrice" value={product.retailPrice} onValueChange={(e) => onInputNumberChange(e, 'retailPrice')} mode="currency" currency="VND" locale="vi-VN" />
+          </div>
+          <div className="field col">
+            <label htmlFor="wholeSalePrice" className="font-bold">
+              Bán sĩ
+            </label>
+            <InputNumber id="wholeSalePrice" value={product.retailPrice} onValueChange={(e) => onInputNumberChange(e, 'wholeSalePrice')} mode="currency" currency="VND" locale="vi-VN" />
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="description" className="font-bold">
+            Mô tả
+          </label>
+          <InputTextarea id="description" value={product.description || ""} onChange={(e) => onInputChange(e, 'description')} required rows={3} cols={20} />
         </div>
       </Dialog>
 

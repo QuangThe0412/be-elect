@@ -1,8 +1,14 @@
+import erroImage from '../Product/erro.jpg';
+
 export function formatCurrency(value: number | string) {
-    return value.toLocaleString('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-    }).replace('₫', '');
+    if(value) {
+        return value.toLocaleString('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+        }).replace('₫', '');
+    } else {
+        return value;
+    }
 }
 
 export function validateEmail(input: HTMLInputElement) {
@@ -17,3 +23,7 @@ export function validateEmail(input: HTMLInputElement) {
     }
     return true;
 }
+
+export const handleImageError = (event: any) => {
+    event.target.src = erroImage;
+  };
