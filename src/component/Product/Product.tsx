@@ -5,7 +5,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
-import { FileUpload } from 'primereact/fileupload';
+import { FileUpload, FileUploadHandlerOptions } from 'primereact/fileupload';
 import { Rating } from 'primereact/rating';
 import { Toolbar } from 'primereact/toolbar';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -14,8 +14,8 @@ import { InputNumber, InputNumberChangeEvent } from 'primereact/inputnumber';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
-import { ApiGetProducts, ApiGetCategories, Categories, Product } from '@/services/productApi';
-import { formatCurrency, handleImageError } from '../Common';
+import { ApiGetProducts, ApiGetCategories, Categories, Product, ApiAddProduct } from '@/services/productApi';
+import { formatCurrency, handleImageError, linkImageGG } from '../Common';
 import '@/styles/product.css';
 
 interface FileUploadState {
@@ -45,7 +45,7 @@ export default function ProductsDemo() {
   };
 
   const [fileImage, setFileImage] = useState<FileUploadState>({
-    files: []
+    files: [],
   });
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -59,6 +59,7 @@ export default function ProductsDemo() {
   const [globalFilter, setGlobalFilter] = useState<string>('');
   const toast = useRef<Toast>(null);
   const dt = useRef<DataTable<Product[]>>(null);
+  const [objectURL, setObjectURL] = useState<string>('');
 
   useEffect(() => {
     const fetchDataProducts = async () => {
@@ -77,6 +78,7 @@ export default function ProductsDemo() {
 
   const openNew = () => {
     setProduct(emptyProduct);
+    setObjectURL('');
     setSubmitted(false);
     setProductDialog(true);
   };
@@ -94,33 +96,30 @@ export default function ProductsDemo() {
     setDeleteProductsDialog(false);
   };
 
-  const saveProduct = () => {
+  const saveProduct = async () => {
     setSubmitted(true);
 
     if (product.name.trim()) {
-      let _products = [...products];
-      let _product = { ...product };
-
-      if (product.id) {
-        const index = findIndexById(product.id);
-
-        _products[index] = _product;
+      if (product.id) { // update
         toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-      } else {
-        _product.id = createId();
-        _product.image = 'product-placeholder.svg';
-        _products.push(_product);
-        toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+      } else { // create new
+        const res = await ApiAddProduct([product], fileImage);
+        if (res && res.code == 200) {
+          toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+          setProductDialog(false);
+          setProduct(emptyProduct);
+        } else {
+          toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Product Created Fail', life: 3000 });
+        }
+        //_products.push(_product);
       }
-
-      setProducts(_products);
-      setProductDialog(false);
-      setProduct(emptyProduct);
     }
   };
 
   const editProduct = (product: Product) => {
     setProduct({ ...product });
+    const image = product.image ?? '';
+    setObjectURL(linkImageGG() + image);
     setProductDialog(true);
   };
 
@@ -226,8 +225,6 @@ export default function ProductsDemo() {
       onClick={exportCSV} />;
   };
 
-
-
   const imageBodyTemplate = (rowData: Product) => {
     return (
       <img
@@ -299,13 +296,6 @@ export default function ProductsDemo() {
       </>
     );
   };
-  // const ratingBodyTemplate = (rowData: Product) => {
-  //   return <Rating value={rowData.rating} readOnly cancel={false} />;
-  // };
-
-  // const statusBodyTemplate = (rowData: Product) => {
-  //   return <Tag value={rowData.inventoryStatus} severity={getSeverity(rowData)}></Tag>;
-  // };
 
   const actionBodyTemplate = (rowData: Product) => {
     return (
@@ -317,22 +307,6 @@ export default function ProductsDemo() {
       </React.Fragment>
     );
   };
-
-  // const getSeverity = (product: Product) => {
-  //   switch (product.inventoryStatus) {
-  //     case 'INSTOCK':
-  //       return 'success';
-
-  //     case 'LOWSTOCK':
-  //       return 'warning';
-
-  //     case 'OUTOFSTOCK':
-  //       return 'danger';
-
-  //     default:
-  //       return null;
-  //   }
-  // };
 
   const header = (
     <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
@@ -362,22 +336,25 @@ export default function ProductsDemo() {
       <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteSelectedProducts} />
     </React.Fragment>
   );
+
   const handleSelectFile = async (event: any) => {
     const file = event.files[0];
     const reader = new FileReader();
     let blob = await fetch(file.objectURL).then((r) => r.blob());
 
     reader.readAsDataURL(blob);
-    
+
     reader.onloadend = function () {
       const arrayBuffer = reader.result as ArrayBuffer;
       const binaryData = new Uint8Array(arrayBuffer);
 
-      setFileImage({ files: [new File([binaryData], file.name, { type: file.type })] });
+      setFileImage({
+        files: [new File([binaryData], file.name, { type: file.type })],
+      });
+      setObjectURL(file.objectURL);
     };
   };
 
-  console.log(fileImage)
   return (
     <>
       <Toast ref={toast} />
@@ -414,15 +391,18 @@ export default function ProductsDemo() {
 
       <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }}
         header="Product Details" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
-        <FileUpload name="file" url={'/api/upload'} accept="image/*" mode='basic'
-          maxFileSize={3000000}
+        <FileUpload name="file" accept="image/*" mode='basic'
           onSelect={handleSelectFile}
           emptyTemplate={
-            product.image && <img style={{ maxWidth: 300 }}
-              src={`https://drive.google.com/uc?export=view&id=${product.image}`}
+            product.image && <img style={{ maxWidth: 200 }}
+              src={`${linkImageGG()}${product.image}`}
               onError={handleImageError} alt={product.image}
               className="product-image block m-auto pb-3" />
           } />
+        {objectURL && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <img onError={handleImageError} style={{ maxWidth: 200, maxHeight: 200 }}
+            src={objectURL} />
+        </div>}
         <div className="formgrid grid">
           <div className="field col">
             <label htmlFor="name" className="font-bold">

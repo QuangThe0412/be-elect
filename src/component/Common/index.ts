@@ -1,7 +1,7 @@
 import erroImage from '../Product/erro.jpg';
 
 export function formatCurrency(value: number | string) {
-    if(value) {
+    if (value) {
         return value.toLocaleString('vi-VN', {
             style: 'currency',
             currency: 'VND',
@@ -26,4 +26,6 @@ export function validateEmail(input: HTMLInputElement) {
 
 export const handleImageError = (event: any) => {
     event.target.src = erroImage;
-  };
+};
+
+export const linkImageGG = () => 'https://drive.google.com/uc?export=view&id=';
