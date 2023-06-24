@@ -14,9 +14,10 @@ import { InputNumber, InputNumberChangeEvent } from 'primereact/inputnumber';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
-import { ApiGetProducts, ApiGetCategories, Categories, Product, ApiAddProduct } from '@/services/productApi';
+import { ApiGetProducts, Product, ApiAddProduct } from '@/services/productApi';
 import { formatCurrency, handleImageError, linkImageGG } from '../Common';
 import '@/styles/product.css';
+import { ApiGetCategories, Categories } from '@/services/categoryApi';
 
 interface FileUploadState {
   files: File[];
@@ -40,8 +41,6 @@ export default function ProductsDemo() {
     numberImport: 0,
     description: '',
     warrantyTime: 0,
-    dateCreate: null,
-    dateFix: null,
   };
 
   const [fileImage, setFileImage] = useState<FileUploadState>({
@@ -103,13 +102,13 @@ export default function ProductsDemo() {
       if (product.id) { // update
         toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
       } else { // create new
-        const res = await ApiAddProduct([product], fileImage);
-        if (res && res.code == 200) {
+        const res = await ApiAddProduct(product, fileImage);
+        if (res && res.code == 201) {
           toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
           setProductDialog(false);
           setProduct(emptyProduct);
         } else {
-          toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Product Created Fail', life: 3000 });
+          toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Product Created Fail', life: 8000 });
         }
         //_products.push(_product);
       }
@@ -148,17 +147,6 @@ export default function ProductsDemo() {
     }
 
     return index;
-  };
-
-  const createId = (): string => {
-    let id = '';
-    let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-    for (let i = 0; i < 5; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-
-    return id;
   };
 
   const exportCSV = () => {
@@ -345,11 +333,8 @@ export default function ProductsDemo() {
     reader.readAsDataURL(blob);
 
     reader.onloadend = function () {
-      const arrayBuffer = reader.result as ArrayBuffer;
-      const binaryData = new Uint8Array(arrayBuffer);
-
       setFileImage({
-        files: [new File([binaryData], file.name, { type: file.type })],
+        files: [new File([blob], file.name, { type: file.type })],
       });
       setObjectURL(file.objectURL);
     };
