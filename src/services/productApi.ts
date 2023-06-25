@@ -19,24 +19,55 @@ export interface Product {
   warrantyTime: number,
 };
 
+/**
+ * Hàm lấy dữ liệu sản phẩm từ api
+ * @returns Array sản phẩm từ api
+ */
 export const ApiGetProducts = async () => {
-
-  const response = await fetch("http://thedevapi.somee.com/api/products", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  let json = await response.json();
-  let _products: Product[] = json.data;
-  return _products
+  try {
+    const response = await fetch("http://thedevapi.somee.com/api/products", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response && response.ok) {
+      let result: ResponseProductApi = await response.json();
+      return result;
+    }
+    console.log("Thất bại:", "ApiGetProducts");
+  } catch (error) {
+    console.log('Lỗi ApiGetProducts:', error)
+  }
 }
 
+/**
+ * Hàm lấy dữ liệu chi tiết sản phẩm từ api
+ * @returns Chi tiết sản phẩm từ api
+ */
 export const ApiGetProductsDetails = async (id: number) => {
-  const response = await fetch(`https://dummyjson.com/products/${id}`);
-  return await response.json();
+  try {
+    const response = await fetch(`http://thedevapi.somee.com/api/products/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response && response.ok) {
+      let result: ResponseProductApi = await response.json();
+      return result;
+    }
+    console.log("Thất bại:", "ApiGetProductsDetails");
+  } catch (error) {
+    console.log('Lỗi ApiGetProductsDetails:', error)
+  }
 }
 
+/**
+ * Hảm thêm mới sản phẩm với api
+ * @param products thông tin sản phẩm được tạo
+ * @param file file hình ảnh
+ * @returns 
+ */
 export const ApiAddProduct = async (products: Product, file: any) => {
   try {
     const formData = new FormData();
@@ -44,13 +75,13 @@ export const ApiAddProduct = async (products: Product, file: any) => {
     for (const key of Object.keys(products) as Array<keyof Product>) {
       const value = products[key] as string | number | boolean | null | Date;
       //Bởi vì key gửi lên sẻ Viết hoa chữ cái đầu
-      //Còn res nhận được thì không
+      //Còn response nhận được thì không
       const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
       formData.append(capitalizedKey, String(value) || '');
     }
-    //Gởi lên hình ảnh
+    //Gởi lên hình ảnh sẽ được lưu ở gg drive
     formData.append('file', file.files[0]);
-    
+
     const response = await fetch("http://thedevapi.somee.com/api/products", {
       method: 'POST',
       headers: {
@@ -59,15 +90,12 @@ export const ApiAddProduct = async (products: Product, file: any) => {
       body: formData,
     });
 
-    if (response.ok) {
+    if (response && response.ok) {
       const result: ResponseProductApi = await response.json();
-      console.log(result)
       return result;
-    } else {
-      console.error('Failed to add product.');
     }
-
+    console.error('Thất bại:', "ApiAddProduct");
   } catch (error) {
-    console.error('Error creating product:', error);
+    console.error('Lỗi ApiAddProduct:', error);
   }
 }

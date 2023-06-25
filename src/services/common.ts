@@ -1,13 +1,28 @@
+import { Categories } from "./categoryApi";
 import { Product } from "./productApi";
 
 export interface ResponseProductApi {
-    code: number | null,
-    mess: string | null,
-    data: Product[]
-  };
-  
+  code: number | null,
+  mess: string | null,
+  data: Product[]
+};
+
+export interface ResponsePCategoriesApi {
+  code: number | null,
+  mess: string | null,
+  data: Categories[]
+};
+
+
+/**
+ * Tooken test
+ */
 export const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjY0NDc0MzJkNmMxYzQ0ZWVkOWE0NjI1OCIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjoiYWRtaW4iLCJuYmYiOjE2ODYyMDY3MTQsImV4cCI6MTY4ODc5ODcxNCwiaWF0IjoxNjg2MjA2NzE0fQ.yj7ObEhYrbayJMayGORK-jdGUwLVYzK5_bDnUJRFxsY';
 
+/**
+ * Hàm tạo id ngẫu nhiên
+ * @returns Chuỗi 4 ký tự ngẫu nhiên
+ */
 const createId = (): string => {
   let id = '';
   let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

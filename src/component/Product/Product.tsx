@@ -18,6 +18,8 @@ import { ApiGetProducts, Product, ApiAddProduct } from '@/services/productApi';
 import { formatCurrency, handleImageError, linkImageGG } from '../Common';
 import '@/styles/product.css';
 import { ApiGetCategories, Categories } from '@/services/categoryApi';
+import { ResponseProductApi } from '@/services/common';
+import { Loading } from '../Common/loading';
 
 interface FileUploadState {
   files: File[];
@@ -43,6 +45,10 @@ export default function ProductsDemo() {
     warrantyTime: 0,
   };
 
+  const emptyImage :FileUploadState = {
+    files: [new File([], "")],
+  }
+
   const [fileImage, setFileImage] = useState<FileUploadState>({
     files: [],
   });
@@ -56,35 +62,49 @@ export default function ProductsDemo() {
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [globalFilter, setGlobalFilter] = useState<string>('');
+  const [renderApi, setRenderApi] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const toast = useRef<Toast>(null);
   const dt = useRef<DataTable<Product[]>>(null);
   const [objectURL, setObjectURL] = useState<string>('');
 
+  //api product
   useEffect(() => {
     const fetchDataProducts = async () => {
-      const products = await ApiGetProducts();
-      setProducts(products);
-    }
-
-    const fetchDataCategories = async () => {
-      const categories = await ApiGetCategories();
-      setCategories(categories);
+      const productRes = await ApiGetProducts();
+      if (productRes && productRes.code === 200) {
+        setProducts(productRes.data);
+      }
     }
 
     fetchDataProducts();
+  }, [renderApi]);
+
+  //api categories
+  useEffect(() => {
+    const fetchDataCategories = async () => {
+      const categoriesRes = await ApiGetCategories();
+      if (categoriesRes && categoriesRes.code === 200) {
+        setCategories(categoriesRes.data);
+      }
+    }
+
     fetchDataCategories();
   }, []);
 
   const openNew = () => {
-    setProduct(emptyProduct);
-    setObjectURL('');
     setSubmitted(false);
     setProductDialog(true);
   };
-
+  
   const hideDialog = () => {
+    setIsLoading(false);
     setSubmitted(false);
     setProductDialog(false);
+
+    setProduct(emptyProduct);
+    setFileImage(emptyImage);
+    setObjectURL('');
   };
 
   const hideDeleteProductDialog = () => {
@@ -98,21 +118,26 @@ export default function ProductsDemo() {
   const saveProduct = async () => {
     setSubmitted(true);
 
+    //set loading
+    setIsLoading(true);
+
     if (product.name.trim()) {
       if (product.id) { // update
         toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
       } else { // create new
         const res = await ApiAddProduct(product, fileImage);
+
         if (res && res.code == 201) {
+          hideDialog();
           toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-          setProductDialog(false);
-          setProduct(emptyProduct);
+          //reder lại products
+          setRenderApi(!renderApi);
         } else {
-          toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Product Created Fail', life: 8000 });
+          toast.current?.show({ severity: 'error', summary: 'Error', detail: res?.mess, life: 8000 });
         }
-        //_products.push(_product);
       }
     }
+    setIsLoading(false);
   };
 
   const editProduct = (product: Product) => {
@@ -342,6 +367,8 @@ export default function ProductsDemo() {
 
   return (
     <>
+      {isLoading && <Loading isShow={isLoading} />}
+
       <Toast ref={toast} />
       <div className="card">
         <Toolbar className="mb-1" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>

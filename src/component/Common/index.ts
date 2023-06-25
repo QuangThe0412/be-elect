@@ -29,3 +29,11 @@ export const handleImageError = (event: any) => {
 };
 
 export const linkImageGG = () => 'https://drive.google.com/uc?export=view&id=';
+
+export const handleLoading = (isShow: boolean) => {
+    if (isShow) {
+
+    } else {
+
+    }
+};
