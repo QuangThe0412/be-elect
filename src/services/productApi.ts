@@ -99,3 +99,42 @@ export const ApiAddProduct = async (products: Product, file: any) => {
     console.error('Lỗi ApiAddProduct:', error);
   }
 }
+
+/**
+ * Api cập nhật sản phẩm
+ * @param products 
+ * @param file 
+ * @returns 
+ */
+export const ApiUpdateProduct = async (products: Product, file: any) => {
+  try {
+    const formData = new FormData();
+
+    for (const key of Object.keys(products) as Array<keyof Product>) {
+      const value = products[key] as string | number | boolean | null | Date;
+      //Bởi vì key gửi lên sẻ Viết hoa chữ cái đầu
+      //Còn response nhận được thì không
+      const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+      formData.append(capitalizedKey, String(value) || '');
+    }
+    //Gởi lên hình ảnh sẽ được lưu ở gg drive
+    formData.append('file', file.files[0]);
+
+    const response = await fetch("http://thedevapi.somee.com/api/products", {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (response && response.ok) {
+      const result: ResponseProductApi = await response.json();
+      console.log(result);
+      return result;
+    }
+    console.error('Thất bại:', "ApiUpdateProduct");
+  } catch (error) {
+    console.error('Lỗi ApiUpdateProduct:', error);
+  }
+}

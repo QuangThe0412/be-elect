@@ -14,7 +14,7 @@ import { InputNumber, InputNumberChangeEvent } from 'primereact/inputnumber';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
-import { ApiGetProducts, Product, ApiAddProduct } from '@/services/productApi';
+import { ApiGetProducts, Product, ApiAddProduct, ApiUpdateProduct } from '@/services/productApi';
 import { formatCurrency, handleImageError, linkImageGG } from '../Common';
 import '@/styles/product.css';
 import { ApiGetCategories, Categories } from '@/services/categoryApi';
@@ -123,11 +123,19 @@ export default function ProductsDemo() {
 
     if (product.name.trim()) {
       if (product.id) { // update
-        toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+        const res = await ApiUpdateProduct(product,fileImage);
+        if (res && res.code === 200) {
+          hideDialog();
+          toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+          //reder lại products
+          setRenderApi(!renderApi);
+        } else {
+          toast.current?.show({ severity: 'error', summary: 'Error', detail: res?.mess, life: 8000 });
+        }
       } else { // create new
         const res = await ApiAddProduct(product, fileImage);
 
-        if (res && res.code == 201) {
+        if (res && res.code === 201) {
           hideDialog();
           toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
           //reder lại products
