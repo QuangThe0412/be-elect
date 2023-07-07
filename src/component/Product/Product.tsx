@@ -124,14 +124,14 @@ export default function ProductsDemo() {
     if (product.name.trim()) {
       if (product.id) { // update
         const res = await ApiUpdateProduct(product,fileImage);
-        if (res && res.code === 200) {
-          hideDialog();
-          toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-          //reder lại products
-          setRenderApi(!renderApi);
-        } else {
-          toast.current?.show({ severity: 'error', summary: 'Error', detail: res?.mess, life: 8000 });
-        }
+        // if (res && res.code === 200) {
+        //   hideDialog();
+        //   toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+        //   //reder lại products
+        //   setRenderApi(!renderApi);
+        // } else {
+        //   toast.current?.show({ severity: 'error', summary: 'Error', detail: res?.mess, life: 8000 });
+        // }
       } else { // create new
         const res = await ApiAddProduct(product, fileImage);
 
@@ -459,19 +459,19 @@ export default function ProductsDemo() {
             <label htmlFor="importPrice" className="font-bold">
               Giá nhập
             </label>
-            <InputNumber id="importPrice" value={product.retailPrice} onValueChange={(e) => onInputNumberChange(e, 'importPrice')} mode="currency" currency="VND" locale="vi-VN" />
+            <InputNumber id="importPrice" value={product.importPrice} onValueChange={(e) => onInputNumberChange(e, 'importPrice')} mode="currency" currency="VND" locale="vi-VN" />
           </div>
           <div className="field col">
             <label htmlFor="quantity" className="font-bold">
               Số lượng
             </label>
-            <InputNumber id="quantity" value={product.numberImport} onValueChange={(e) => onInputNumberChange(e, 'quantity')} />
+            <InputNumber id="quantity" value={product.quantity} onValueChange={(e) => onInputNumberChange(e, 'quantity')} />
           </div>
           <div className="field col">
             <label htmlFor="warrantyTime" className="font-bold">
               Bảo hành
             </label>
-            <InputNumber id="warrantyTime" value={product.numberImport} onValueChange={(e) => onInputNumberChange(e, 'warrantyTime')} />
+            <InputNumber id="warrantyTime" value={product.warrantyTime} onValueChange={(e) => onInputNumberChange(e, 'warrantyTime')} />
           </div>
         </div>
         <div className="formgrid grid">
@@ -485,7 +485,7 @@ export default function ProductsDemo() {
             <label htmlFor="wholeSalePrice" className="font-bold">
               Bán sĩ
             </label>
-            <InputNumber id="wholeSalePrice" value={product.retailPrice} onValueChange={(e) => onInputNumberChange(e, 'wholeSalePrice')} mode="currency" currency="VND" locale="vi-VN" />
+            <InputNumber id="wholeSalePrice" value={product.wholeSalePrice} onValueChange={(e) => onInputNumberChange(e, 'wholeSalePrice')} mode="currency" currency="VND" locale="vi-VN" />
           </div>
         </div>
         <div className="field">

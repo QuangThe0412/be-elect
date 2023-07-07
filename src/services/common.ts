@@ -18,6 +18,8 @@ export interface ResponsePCategoriesApi {
  * Tooken test
  */
 export const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjY0NDc0MzJkNmMxYzQ0ZWVkOWE0NjI1OCIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjoiYWRtaW4iLCJuYmYiOjE2ODYyMDY3MTQsImV4cCI6MTY4ODc5ODcxNCwiaWF0IjoxNjg2MjA2NzE0fQ.yj7ObEhYrbayJMayGORK-jdGUwLVYzK5_bDnUJRFxsY';
+// export const domain = 'http://thedevapi.somee.com';
+export const domain = 'https://localhost:7027';
 
 /**
  * Hàm tạo id ngẫu nhiên

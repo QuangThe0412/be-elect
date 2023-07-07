@@ -1,5 +1,5 @@
 import { FileUploadState } from "primereact/fileupload";
-import { ResponseProductApi, token } from "./common";
+import { ResponseProductApi, domain, token } from "./common";
 
 export interface Product {
   id: string | '',
@@ -19,13 +19,30 @@ export interface Product {
   warrantyTime: number,
 };
 
+export const ConvertFormData =async (products: Product, file: any) => {
+  const formData = new FormData();
+
+    for (const key of Object.keys(products) as Array<keyof Product>) {
+      const value = products[key] as string | number | boolean | null | Date;
+      //Bởi vì key gửi lên sẻ Viết hoa chữ cái đầu
+      //Còn response nhận được thì không
+      const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+      formData.append(capitalizedKey, String(value) || '');
+    }
+    //Gởi lên hình ảnh sẽ được lưu ở gg drive
+    formData.append('file', file.files[0]);
+
+    return formData;
+}
+
 /**
  * Hàm lấy dữ liệu sản phẩm từ api
  * @returns Array sản phẩm từ api
  */
 export const ApiGetProducts = async () => {
   try {
-    const response = await fetch("http://thedevapi.somee.com/api/products", {
+    const response = await fetch(`${domain}/api/products`, {
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -46,7 +63,8 @@ export const ApiGetProducts = async () => {
  */
 export const ApiGetProductsDetails = async (id: number) => {
   try {
-    const response = await fetch(`http://thedevapi.somee.com/api/products/${id}`, {
+    const response = await fetch(`${domain}/api/products/${id}`, {
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -70,19 +88,9 @@ export const ApiGetProductsDetails = async (id: number) => {
  */
 export const ApiAddProduct = async (products: Product, file: any) => {
   try {
-    const formData = new FormData();
+    const formData = await ConvertFormData(products,file);
 
-    for (const key of Object.keys(products) as Array<keyof Product>) {
-      const value = products[key] as string | number | boolean | null | Date;
-      //Bởi vì key gửi lên sẻ Viết hoa chữ cái đầu
-      //Còn response nhận được thì không
-      const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-      formData.append(capitalizedKey, String(value) || '');
-    }
-    //Gởi lên hình ảnh sẽ được lưu ở gg drive
-    formData.append('file', file.files[0]);
-
-    const response = await fetch("http://thedevapi.somee.com/api/products", {
+    const response = await fetch(`${domain}/api/products`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -108,32 +116,24 @@ export const ApiAddProduct = async (products: Product, file: any) => {
  */
 export const ApiUpdateProduct = async (products: Product, file: any) => {
   try {
-    const formData = new FormData();
-
-    for (const key of Object.keys(products) as Array<keyof Product>) {
-      const value = products[key] as string | number | boolean | null | Date;
-      //Bởi vì key gửi lên sẻ Viết hoa chữ cái đầu
-      //Còn response nhận được thì không
-      const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-      formData.append(capitalizedKey, String(value) || '');
-    }
-    //Gởi lên hình ảnh sẽ được lưu ở gg drive
-    formData.append('file', file.files[0]);
-
-    const response = await fetch("http://thedevapi.somee.com/api/products", {
+    const formData = await ConvertFormData(products,file);
+    const response = await fetch(`${domain}/api/products`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       },
       body: formData,
-    });
+    }).then(x => console.log(x)).catch(y => console.log(y));
 
-    if (response && response.ok) {
-      const result: ResponseProductApi = await response.json();
-      console.log(result);
-      return result;
-    }
-    console.error('Thất bại:', "ApiUpdateProduct");
+    // console.log(response)
+
+    // if (response && response.ok) {
+    //   const result: ResponseProductApi = await response.json();
+    //   console.log(result);
+    //   return result;
+    // }
+    // console.error('Thất bại:', "ApiUpdateProduct");
   } catch (error) {
     console.error('Lỗi ApiUpdateProduct:', error);
   }
