@@ -17,21 +17,28 @@ export interface Product {
   numberImport: number,
   description: string | '',
   warrantyTime: number,
+  dateFix:Date | null,
+  dateCreate:Date | null,
 };
 
-export const ConvertFormData =async (products: Product, file: any) => {
+/**
+ * Tạo formData và Upercase chữ cái đầu cho từng key
+ */
+export const ConvertFormData = async (products: Product, file: any) => {
   const formData = new FormData();
-
+  const date = new Date();
     for (const key of Object.keys(products) as Array<keyof Product>) {
       const value = products[key] as string | number | boolean | null | Date;
-      //Bởi vì key gửi lên sẻ Viết hoa chữ cái đầu
-      //Còn response nhận được thì không
       const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-      formData.append(capitalizedKey, String(value) || '');
+
+      if(capitalizedKey === 'DateFix'){
+        formData.append(capitalizedKey, date.toISOString());
+      } else {
+        formData.append(capitalizedKey, String(value) || '');
+      }
     }
     //Gởi lên hình ảnh sẽ được lưu ở gg drive
     formData.append('file', file.files[0]);
-
     return formData;
 }
 
@@ -121,19 +128,15 @@ export const ApiUpdateProduct = async (products: Product, file: any) => {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
       },
       body: formData,
-    }).then(x => console.log(x)).catch(y => console.log(y));
+    });
 
-    // console.log(response)
-
-    // if (response && response.ok) {
-    //   const result: ResponseProductApi = await response.json();
-    //   console.log(result);
-    //   return result;
-    // }
-    // console.error('Thất bại:', "ApiUpdateProduct");
+    if (response && response.ok) {
+      const result: ResponseProductApi = await response.json();
+      return result;
+    }
+    console.error('Thất bại:', 'ApiUpdateProduct');
   } catch (error) {
     console.error('Lỗi ApiUpdateProduct:', error);
   }

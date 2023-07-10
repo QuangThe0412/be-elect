@@ -43,9 +43,11 @@ export default function ProductsDemo() {
     numberImport: 0,
     description: '',
     warrantyTime: 0,
+    dateCreate: null,
+    dateFix: null,
   };
 
-  const emptyImage :FileUploadState = {
+  const emptyImage: FileUploadState = {
     files: [new File([], "")],
   }
 
@@ -96,7 +98,7 @@ export default function ProductsDemo() {
     setSubmitted(false);
     setProductDialog(true);
   };
-  
+
   const hideDialog = () => {
     setIsLoading(false);
     setSubmitted(false);
@@ -115,23 +117,36 @@ export default function ProductsDemo() {
     setDeleteProductsDialog(false);
   };
 
+  /**
+   * Kiểm tra form
+   * @returns 
+   */
+  const validateForm = () => {
+    if (product.name.trim() === '' || product.idCategory.trim() === ''
+      || product.unit.trim() === '') {
+      return false;
+    }
+    return true;
+  };
+
   const saveProduct = async () => {
     setSubmitted(true);
 
     //set loading
     setIsLoading(true);
 
-    if (product.name.trim()) {
+    const validate = validateForm()
+    if (validate) {
       if (product.id) { // update
-        const res = await ApiUpdateProduct(product,fileImage);
-        // if (res && res.code === 200) {
-        //   hideDialog();
-        //   toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-        //   //reder lại products
-        //   setRenderApi(!renderApi);
-        // } else {
-        //   toast.current?.show({ severity: 'error', summary: 'Error', detail: res?.mess, life: 8000 });
-        // }
+        const res = await ApiUpdateProduct(product, fileImage);
+        if (res && res.code === 200) {
+          hideDialog();
+          toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+          //reder lại products
+          setRenderApi(!renderApi);
+        } else {
+          toast.current?.show({ severity: 'error', summary: 'Error', detail: res?.mess, life: 8000 });
+        }
       } else { // create new
         const res = await ApiAddProduct(product, fileImage);
 
