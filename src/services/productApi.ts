@@ -17,8 +17,8 @@ export interface Product {
   numberImport: number,
   description: string | '',
   warrantyTime: number,
-  dateFix:Date | null,
-  dateCreate:Date | null,
+  dateFix: Date | null,
+  dateCreate: Date | null,
 };
 
 /**
@@ -27,19 +27,19 @@ export interface Product {
 export const ConvertFormData = async (products: Product, file: any) => {
   const formData = new FormData();
   const date = new Date();
-    for (const key of Object.keys(products) as Array<keyof Product>) {
-      const value = products[key] as string | number | boolean | null | Date;
-      const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+  for (const key of Object.keys(products) as Array<keyof Product>) {
+    const value = products[key] as string | number | boolean | null | Date;
+    const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
 
-      if(capitalizedKey === 'DateFix'){
-        formData.append(capitalizedKey, date.toISOString());
-      } else {
-        formData.append(capitalizedKey, String(value) || '');
-      }
+    if (capitalizedKey === 'DateFix' || capitalizedKey === 'DateCreate') {
+      formData.append(capitalizedKey, date.toISOString());
+    } else {
+      formData.append(capitalizedKey, String(value) || '');
     }
-    //Gởi lên hình ảnh sẽ được lưu ở gg drive
-    formData.append('file', file.files[0]);
-    return formData;
+  }
+  //Gởi lên hình ảnh sẽ được lưu ở gg drive
+  formData.append('file', file.files[0]);
+  return formData;
 }
 
 /**
@@ -95,7 +95,7 @@ export const ApiGetProductsDetails = async (id: number) => {
  */
 export const ApiAddProduct = async (products: Product, file: any) => {
   try {
-    const formData = await ConvertFormData(products,file);
+    const formData = await ConvertFormData(products, file);
 
     const response = await fetch(`${domain}/api/products`, {
       method: 'POST',
@@ -123,7 +123,7 @@ export const ApiAddProduct = async (products: Product, file: any) => {
  */
 export const ApiUpdateProduct = async (products: Product, file: any) => {
   try {
-    const formData = await ConvertFormData(products,file);
+    const formData = await ConvertFormData(products, file);
     const response = await fetch(`${domain}/api/products`, {
       method: 'PATCH',
       headers: {
@@ -139,5 +139,59 @@ export const ApiUpdateProduct = async (products: Product, file: any) => {
     console.error('Thất bại:', 'ApiUpdateProduct');
   } catch (error) {
     console.error('Lỗi ApiUpdateProduct:', error);
+  }
+}
+
+/**
+ * Xóa nhiều sản phẩm
+ * @param ids mãng id sản phẩm
+ * @returns 
+ */
+export const ApiDeletedProducts = async (ids: string) => {
+  if (ids && ids.length > 0) {
+    try {
+      const formData = new FormData();
+      formData.append('ids', ids);
+
+      const response = await fetch(`${domain}/api/products/multiple`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response && response.ok) {
+        const result: ResponseProductApi = await response.json();
+        return result;
+      }
+      console.error('Thất bại:', 'ApiDeletedProducts');
+    } catch (error) {
+      console.error('Lỗi ApiDeletedProducts:', error);
+    }
+  }
+}
+
+/**
+ * xóa sản phẩm
+ * @param id id sản phẩm
+ * @returns 
+ */
+export const ApiDeletedProduct = async (id: string) => {
+  try {
+    const response = await fetch(`${domain}/api/products/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response && response.ok) {
+      const result: ResponseProductApi = await response.json();
+      return result;
+    }
+    console.error('Thất bại:', 'ApiDeletedProduct');
+  } catch (error) {
+    console.error('Lỗi ApiDeletedProduct:', error);
   }
 }

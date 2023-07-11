@@ -14,7 +14,7 @@ import { InputNumber, InputNumberChangeEvent } from 'primereact/inputnumber';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
-import { ApiGetProducts, Product, ApiAddProduct, ApiUpdateProduct } from '@/services/productApi';
+import { ApiGetProducts, Product, ApiAddProduct, ApiUpdateProduct, ApiDeletedProduct, ApiDeletedProducts } from '@/services/productApi';
 import { formatCurrency, handleImageError, linkImageGG } from '../Common';
 import '@/styles/product.css';
 import { ApiGetCategories, Categories } from '@/services/categoryApi';
@@ -119,14 +119,18 @@ export default function ProductsDemo() {
 
   /**
    * Kiểm tra form
-   * @returns 
+   * @returns true => Khi thõa tất cả validate và false khi có ít nhất 1 thuộc tính không thõa
    */
   const validateForm = () => {
-    if (product.name.trim() === '' || product.idCategory.trim() === ''
-      || product.unit.trim() === '') {
-      return false;
+    if ((product.name && product.name.trim() !== '' && product.name.trim() !== null)
+      && (product.idCategory && product.idCategory.trim() !== '' && product.idCategory.trim() !== null)
+      && (product.unit && product.unit.trim() !== '' && product.unit.trim() !== null)
+      && (product.brand && product.brand.trim() !== '' && product.brand.trim() !== null)
+      && (product.idFake && product.idFake.trim() !== '' && product.idFake.trim() !== null)
+    ) {
+      return true;
     }
-    return true;
+    return false;
   };
 
   const saveProduct = async () => {
@@ -134,8 +138,7 @@ export default function ProductsDemo() {
 
     //set loading
     setIsLoading(true);
-
-    const validate = validateForm()
+    const validate = validateForm();
     if (validate) {
       if (product.id) { // update
         const res = await ApiUpdateProduct(product, fileImage);
@@ -175,13 +178,18 @@ export default function ProductsDemo() {
     setDeleteProductDialog(true);
   };
 
-  const deleteProduct = () => {
-    let _products = products.filter((val) => val.id !== product.id);
+  const deleteProduct = async () => {
+    const res = await ApiDeletedProduct(product.id);
+    if (res && res.code === 200) {
+      toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
+      //reder lại products
+      setRenderApi(!renderApi);
+    } else {
+      toast.current?.show({ severity: 'error', summary: 'Error', detail: res?.mess, life: 8000 });
+    }
 
-    setProducts(_products);
     setDeleteProductDialog(false);
     setProduct(emptyProduct);
-    toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
   };
 
   const findIndexById = (id: string) => {
@@ -205,13 +213,20 @@ export default function ProductsDemo() {
     setDeleteProductsDialog(true);
   };
 
-  const deleteSelectedProducts = () => {
-    let _products = products.filter((val) => !selectedProducts.includes(val));
+  const deleteSelectedProducts = async () => {
+    const arrIds = selectedProducts.map(product => product.id);
+    const ids: string = arrIds.filter(id => id !== undefined).join(',');
 
-    setProducts(_products);
+    const res = await ApiDeletedProducts(ids);
+    if (res && res.code === 200) {
+      toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
+      //reder lại products
+      setRenderApi(!renderApi);
+    } else {
+      toast.current?.show({ severity: 'error', summary: 'Error', detail: res?.mess, life: 8000 });
+    }
     setDeleteProductsDialog(false);
     setSelectedProducts([]);
-    toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
   };
 
   const onCategoryChange = (e: RadioButtonChangeEvent) => {
@@ -402,7 +417,7 @@ export default function ProductsDemo() {
               setSelectedProducts(e.value);
             }
           }}
-          dataKey="id" paginator rows={5} rowsPerPageOptions={[5, 10, 25]}
+          dataKey="id" paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
           <Column selectionMode="multiple" exportable={false}></Column>
@@ -424,7 +439,7 @@ export default function ProductsDemo() {
         </DataTable>
       </div>
 
-      <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }}
+      <Dialog visible={productDialog} style={{ width: '45rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }}
         header="Product Details" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
         <FileUpload name="file" accept="image/*" mode='basic'
           onSelect={handleSelectFile}
@@ -438,14 +453,22 @@ export default function ProductsDemo() {
           <img onError={handleImageError} style={{ maxWidth: 200, maxHeight: 200 }}
             src={objectURL} />
         </div>}
+        <div className="field">
+          <label htmlFor="name" className="font-bold">
+            Tên
+          </label>
+          <InputText id="name" value={product.name} onChange={(e) => onInputChange(e, 'name')}
+            required autoFocus className={classNames({ 'p-invalid': submitted && !product.name })} />
+          {submitted && !product.name && <small className="p-error">Tên không được để trống.</small>}
+        </div>
         <div className="formgrid grid">
           <div className="field col">
-            <label htmlFor="name" className="font-bold">
-              Tên
+            <label htmlFor="idFake" className="font-bold">
+              Mã
             </label>
-            <InputText id="name" value={product.name} onChange={(e) => onInputChange(e, 'name')}
+            <InputText id="idFake" value={product.idFake} onChange={(e) => onInputChange(e, 'idFake')}
               required autoFocus className={classNames({ 'p-invalid': submitted && !product.name })} />
-            {submitted && !product.name && <small className="p-error">Tên không được để trống.</small>}
+            {submitted && !product.idFake && <small className="p-error">Mã không được để trống.</small>}
           </div>
           <div className="field col">
             <label htmlFor="unit" className="font-bold">
@@ -457,16 +480,18 @@ export default function ProductsDemo() {
           </div>
         </div>
 
-        <div className="field">
+        <div className="field col">
           <label className="mb-3 font-bold">Thể loại</label>
           <div className="formgrid grid">
             {templateCategories()}
+            {submitted && !product.idCategory && <small className="p-error">Vui lòng chọn thể loại.</small>}
           </div>
         </div>
-        <div className="field">
+        <div className="field col">
           <label className="mb-3 font-bold">Thương hiệu</label>
           <div className="formgrid grid">
             {templateBrand()}
+            {submitted && !product.brand && <small className="p-error">Vui lòng chọn thương hiệu.</small>}
           </div>
         </div>
         <div className="formgrid grid">
