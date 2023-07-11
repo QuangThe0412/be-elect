@@ -27,7 +27,13 @@ export default function MenuLeft() {
             template: customeTemplate('Home', 'pi pi-home', '/'),
         },
         {
-            template: customeTemplate('Product', 'pi pi-info', '/products'),
+            template: customeTemplate('Product', 'pi pi-box', '/products'),
+        },
+        {
+            template: customeTemplate('Permission', 'pi pi-user', '/permission'),
+        },
+        {
+            template: customeTemplate('xxxxx', 'pi pi-prime', '/'),
         },
     ];
 
