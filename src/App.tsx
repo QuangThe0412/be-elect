@@ -6,7 +6,7 @@ import Home from './component/Home/Home';
 import Product from './component/Product/Product';
 import MenuLeft from './component/Menu/Menu';
 import '@/styles/prime.css';
-import Permission from './component/Permission/Permission';
+import Permission from './component/userRolePermissionApi/userRolePermissionApi';
         
 function App() {
   return (

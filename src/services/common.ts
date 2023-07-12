@@ -1,5 +1,30 @@
 import { Categories } from "./categoryApi";
+import { Permission, Role, User, UserRolePermission } from "./userRolePermissionApi";
 import { Product } from "./productApi";
+
+export interface ResponseUserRolePermissionApi {
+  code: number | null,
+  mess: string | null,
+  data: UserRolePermission[]
+};
+
+export interface ResponsePermissionApi {
+  code: number | null,
+  mess: string | null,
+  data: Permission[]
+};
+
+export interface ResponseRoleApi {
+  code: number | null,
+  mess: string | null,
+  data: Role[]
+};
+
+export interface ResponseUserApi {
+  code: number | null,
+  mess: string | null,
+  data: User[]
+};
 
 export interface ResponseProductApi {
   code: number | null,
