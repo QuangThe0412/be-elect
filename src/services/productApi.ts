@@ -1,5 +1,5 @@
 import { FileUploadState } from "primereact/fileupload";
-import { ResponseProductApi, domain, token } from "./common";
+import { ConvertFormData, domain, token } from "./common";
 
 export interface Product {
   id: string | '',
@@ -21,26 +21,11 @@ export interface Product {
   dateCreate: Date | null,
 };
 
-/**
- * Tạo formData và Upercase chữ cái đầu cho từng key
- */
-export const ConvertFormData = async (products: Product, file: any) => {
-  const formData = new FormData();
-  const date = new Date();
-  for (const key of Object.keys(products) as Array<keyof Product>) {
-    const value = products[key] as string | number | boolean | null | Date;
-    const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-
-    if (capitalizedKey === 'DateFix' || capitalizedKey === 'DateCreate') {
-      formData.append(capitalizedKey, date.toISOString());
-    } else {
-      formData.append(capitalizedKey, String(value) || '');
-    }
-  }
-  //Gởi lên hình ảnh sẽ được lưu ở gg drive
-  formData.append('file', file.files[0]);
-  return formData;
-}
+export interface ResponseProductApi {
+  code: number | null,
+  mess: string | null,
+  data: Product[]
+};
 
 /**
  * Hàm lấy dữ liệu sản phẩm từ api
@@ -68,7 +53,7 @@ export const ApiGetProducts = async () => {
  * Hàm lấy dữ liệu chi tiết sản phẩm từ api
  * @returns Chi tiết sản phẩm từ api
  */
-export const ApiGetProductsDetails = async (id: number) => {
+export const ApiGetProductsDetails = async (id: string) => {
   try {
     const response = await fetch(`${domain}/api/products/${id}`, {
       method: 'GET',
@@ -195,3 +180,4 @@ export const ApiDeletedProduct = async (id: string) => {
     console.error('Lỗi ApiDeletedProduct:', error);
   }
 }
+

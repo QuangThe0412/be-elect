@@ -1,13 +1,18 @@
 
 import React, { useEffect, useState } from 'react';
-import { ApiGetPermissions, ApiGetRoles, ApiGetUserRolePermission, ApiGetUsers, Permission, Role, User, UserRolePermission } from '@/services/userRolePermissionApi';
 import { Checkbox, CheckboxChangeEvent } from "primereact/checkbox";
+import { ApiGetUsers, User } from '@/services/userApi';
+import { ApiGetRoles, Role } from '@/services/roleApi';
+import { ApiGetPermissions, Permission } from '@/services/permissionApi';
+import { UserRole } from '@/services/userRoleApi';
+import { RolePermission } from '@/services/rolePermission';
 
 export default function UserRolePermission() {
     const [users, setUsers] = useState<User[]>();
     const [permisions, setPermisions] = useState<Permission[]>();
     const [roles, setRoles] = useState<Role[]>();
-    const [userRolePermission, setUserRolePermission] = useState<UserRolePermission[]>();
+    const [userRole, setUserRole] = useState<UserRole[]>();
+    const [rolePermission, setRolePermission] = useState<RolePermission[]>();
 
     useEffect(() => {
         const fetchDataUsers = async () => {
@@ -37,14 +42,23 @@ export default function UserRolePermission() {
 
         fetchDataPermissions();
         
-        const fetchDataUserRolePermissions = async () => {
-            const res = await ApiGetUserRolePermission();
-            if (res && res.code === 200) {
-                setUserRolePermission(res.data);
-            }
+        const fetchDataUserRole = async () => {
+            // const res = await ApiGetUserRoles();
+            // if (res && res.code === 200) {
+            //     setUserRole(res.data);
+            // }
         }
 
-        fetchDataUserRolePermissions();
+        fetchDataUserRole();
+
+        const fetchDataRolePermissions = async () => {
+            // const res = await ApiGetRolePermissions();
+            // if (res && res.code === 200) {
+            //     setRolePermission(res.data);
+            // }
+        }
+
+        fetchDataRolePermissions();
     }, []);
 
     // const onIngredientsChange = (e: CheckboxChangeEvent) => {

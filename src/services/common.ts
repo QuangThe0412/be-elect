@@ -1,41 +1,26 @@
-import { Categories } from "./categoryApi";
-import { Permission, Role, User, UserRolePermission } from "./userRolePermissionApi";
-import { Product } from "./productApi";
+/**
+ * Tạo formData và Upercase chữ cái đầu cho từng key
+ */
+export const ConvertFormData = async (data: any, file?: any) => {
+  const formData = new FormData();
+  const date = new Date();
 
-export interface ResponseUserRolePermissionApi {
-  code: number | null,
-  mess: string | null,
-  data: UserRolePermission[]
-};
+  for (const key of Object.keys(data)) {
+    let value = data[key];
+    const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
 
-export interface ResponsePermissionApi {
-  code: number | null,
-  mess: string | null,
-  data: Permission[]
-};
+    if (value instanceof Date) {
+      formData.append(capitalizedKey, value.toISOString());
+    } else {
+      formData.append(capitalizedKey, String(value) || '');
+    }
+  }
 
-export interface ResponseRoleApi {
-  code: number | null,
-  mess: string | null,
-  data: Role[]
-};
+  if (file) {
+    formData.append('file', file.files[0]);
+  }
 
-export interface ResponseUserApi {
-  code: number | null,
-  mess: string | null,
-  data: User[]
-};
-
-export interface ResponseProductApi {
-  code: number | null,
-  mess: string | null,
-  data: Product[]
-};
-
-export interface ResponsePCategoriesApi {
-  code: number | null,
-  mess: string | null,
-  data: Categories[]
+  return formData;
 };
 
 
