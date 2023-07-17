@@ -17,9 +17,8 @@ import { Tag } from 'primereact/tag';
 import { ApiGetProducts, Product, ApiAddProduct, ApiUpdateProduct, ApiDeletedProduct, ApiDeletedProducts } from '@/services/productApi';
 import { formatCurrency, handleImageError, linkImageGG } from '../Common';
 import '@/styles/product.css';
-import { ApiGetCategories, Categories } from '@/services/categoryApi';
-import { ResponseProductApi } from '@/services/common';
 import { Loading } from '../Common/loading';
+import { ApiGetCategories, Category } from '@/services/categoryApi';
 
 interface FileUploadState {
   files: File[];
@@ -56,7 +55,7 @@ export default function ProductsDemo() {
   });
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Categories[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [productDialog, setProductDialog] = useState<boolean>(false);
   const [deleteProductDialog, setDeleteProductDialog] = useState<boolean>(false);
   const [deleteProductsDialog, setDeleteProductsDialog] = useState<boolean>(false);

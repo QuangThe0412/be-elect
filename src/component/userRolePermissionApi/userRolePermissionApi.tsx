@@ -73,7 +73,9 @@ export default function UserRolePermission() {
     // }
 
     return (
-<></>
+<>
+<span>{users?.map(item => (item.username))}</span>
+</>
         // <div className="card flex flex-wrap justify-content-center gap-3">
             
         //     <div className="flex align-items-center">

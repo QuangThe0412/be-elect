@@ -15,7 +15,7 @@ export interface ResponseCategoriesApi {
    * Hàm lấy dữ liệu Category từ api
    * @returns
    */
-  export const ApiGetcategories = async () => {
+  export const ApiGetCategories = async () => {
     try {
       const response = await fetch(`${domain}/api/categories`, {
         method: 'GET',
@@ -27,9 +27,9 @@ export interface ResponseCategoriesApi {
         let result: ResponseCategoriesApi = await response.json();
         return result;
       }
-      console.log("Thất bại:", "ApiGetcategories");
+      console.log("Thất bại:", "ApiGetCategories");
     } catch (error) {
-      console.log('Lỗi ApiGetcategories:', error)
+      console.log('Lỗi ApiGetCategories:', error)
     }
   }
   
