@@ -6,7 +6,7 @@ import Home from './component/Home/Home';
 import Product from './component/Product/Product';
 import MenuLeft from './component/Menu/Menu';
 import '@/styles/prime.css';
-import Permission from './component/userRolePermissionApi/userRolePermissionApi';
+import ManagerRolePermission from './component/ManagerPermission/managerPermission';
         
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
       <Routes >
         <Route path='/' element={<Home />} />
         <Route path='/products' element={<Product />} />
-        <Route path='/permission' element={<Permission />} />
+        <Route path='/permission' element={<ManagerRolePermission />} />
       </Routes>
     </div>
   );

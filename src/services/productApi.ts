@@ -2,7 +2,7 @@ import { FileUploadState } from "primereact/fileupload";
 import { ConvertFormData, domain, token } from "./common";
 
 export interface Product {
-  id: string | '',
+  id: string,
   idCategory: string | '',
   name: string | '',
   brand: string | '',

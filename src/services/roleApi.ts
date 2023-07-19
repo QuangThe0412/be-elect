@@ -1,9 +1,9 @@
 import { ConvertFormData, domain, token } from "./common";
 
 export interface Role {
-    id: string | null;
-    name: string | null;
-    description: string | null;
+    id: string,
+    name: string | null,
+    description: string | null,
     dateFix: Date | null,
     dateCreate: Date | null,
 };
@@ -12,6 +12,11 @@ export interface ResponseRoleApi {
     code: number | null,
     mess: string | null,
     data: Role[]
+  };
+export interface ResponseRoleApiDetail {
+    code: number | null,
+    mess: string | null,
+    data: Role
   };
 
   /**
@@ -50,7 +55,7 @@ export interface ResponseRoleApi {
       });
   
       if (response && response.ok) {
-        let result: ResponseRoleApi = await response.json();
+        let result: ResponseRoleApiDetail = await response.json();
         return result;
       }
       console.log("Thất bại:", "ApiGetRoleDetails");

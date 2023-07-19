@@ -1,14 +1,15 @@
 import { ConvertFormData, domain, token } from './common';
 
 export interface User {
-    id: string | null;
-    username: string | null;
-    password: string | null;
-    email: string | null;
-    firstName: string | null;
-    lastName: string | null;
+    id: string,
+    username: string | null,
+    password: string | null,
+    email: string | null,
+    firstName: string | null,
+    lastName: string | null,
     dateFix: Date | null,
     dateCreate: Date | null,
+    IsDeleted :Boolean | null,
 };
 
 export interface ResponseUserApi {

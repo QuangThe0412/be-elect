@@ -1,9 +1,9 @@
 import { ConvertFormData, domain, token } from "./common";
 
 export interface Permission {
-    id: string | null;
-    name: string | null;
-    description: string | null;
+    id: string,
+    name: string | null,
+    description: string | null,
     dateFix: Date | null,
     dateCreate: Date | null,
 };

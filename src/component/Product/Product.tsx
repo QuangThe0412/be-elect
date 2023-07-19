@@ -17,7 +17,6 @@ import { Tag } from 'primereact/tag';
 import { ApiGetProducts, Product, ApiAddProduct, ApiUpdateProduct, ApiDeletedProduct, ApiDeletedProducts } from '@/services/productApi';
 import { formatCurrency, handleImageError, linkImageGG } from '../Common';
 import '@/styles/product.css';
-import { Loading } from '../Common/loading';
 import { ApiGetCategories, Category } from '@/services/categoryApi';
 
 interface FileUploadState {
@@ -25,7 +24,6 @@ interface FileUploadState {
 }
 
 export default function ProductsDemo() {
-  const current = new Date();
   const emptyProduct: Product = {
     id: '',
     idCategory: '',
@@ -68,6 +66,7 @@ export default function ProductsDemo() {
   const toast = useRef<Toast>(null);
   const dt = useRef<DataTable<Product[]>>(null);
   const [objectURL, setObjectURL] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
 
   //api product
   useEffect(() => {
@@ -75,6 +74,7 @@ export default function ProductsDemo() {
       const productRes = await ApiGetProducts();
       if (productRes && productRes.code === 200) {
         setProducts(productRes.data);
+        setLoading(false);
       }
     }
 
@@ -87,6 +87,7 @@ export default function ProductsDemo() {
       const categoriesRes = await ApiGetCategories();
       if (categoriesRes && categoriesRes.code === 200) {
         setCategories(categoriesRes.data);
+        setLoading(false);
       }
     }
 
@@ -404,13 +405,11 @@ export default function ProductsDemo() {
 
   return (
     <>
-      {isLoading && <Loading isShow={isLoading} />}
-
       <Toast ref={toast} />
       <div className="card">
         <Toolbar className="mb-1" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
 
-        <DataTable ref={dt} value={products} selection={selectedProducts} removableSort
+        <DataTable ref={dt} value={products} selection={selectedProducts} removableSort loading={loading}
           onSelectionChange={(e) => {
             if (Array.isArray(e.value)) {
               setSelectedProducts(e.value);
