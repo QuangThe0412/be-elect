@@ -21,14 +21,13 @@ export interface ResponseUserRoleApi {
  */
 export const ApiGetUserRoleByIdUser = async (idUser: string) => {
   try {
-    const response = await fetch(`${domain}/api/userroles/users/${idUser}`, {
+    const response = await fetch(`${domain}/api/userroles/${idUser}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     
-    console.log(response)
     if (response && response.ok) {
       let result: ResponseUserRoleApi = await response.json();
       return result;

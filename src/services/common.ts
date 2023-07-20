@@ -27,9 +27,10 @@ export const ConvertFormData = async (data: any, file?: any) => {
 /**
  * Tooken test
  */
-export const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjY0NDc0MzJkNmMxYzQ0ZWVkOWE0NjI1OCIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjoiYWRtaW4iLCJuYmYiOjE2ODg5NTI4NzcsImV4cCI6MTY5MTU0NDg3NywiaWF0IjoxNjg4OTUyODc3fQ.Fwo0c90Fde_CxMMq2_CH7zRSZ-3i3PiehsXA03sD4KY';
-export const domain = 'http://thedevapi.somee.com';
-//export const domain = 'https://localhost:7027';
+export const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjY0NDc0MzJkNmMxYzQ0ZWVkOWE0NjI1OCIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjpbImFkbWluIiwicmVhZCJdLCJuYmYiOjE2ODk4MjU5NDcsImV4cCI6MTY5MjQxNzk0NywiaWF0IjoxNjg5ODI1OTQ3fQ.l0oIdfcoIoBteGUXYurVsIcHog53eNmkGIBlFr0_Cx0';
+// export const domain = 'http://thedevapi.somee.com';
+// export const domain = 'https://shjno190.bsite.net';
+export const domain = 'https://localhost:7027';
 
 /**
  * Hàm tạo id ngẫu nhiên
