@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { classNames } from 'primereact/utils';
-import { FilterMatchMode } from 'primereact/api';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
-import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
+import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
-import { ApiDeletedUser, ApiGetUsers, User } from '@/services/userApi';
+import { ApiGetUsers, ApiUpdateStatusUser, User } from '@/services/userApi';
 import { ApiGetRoleDetails, ResponseRoleApi, Role } from '@/services/roleApi';
 import { Permission } from '@/services/permissionApi';
 import { ApiGetUserRoleByIdUser, UserRole } from '@/services/userRoleApi';
 import { RolePermission } from '@/services/rolePermission';
 import { Toast } from 'primereact/toast';
+import { InputSwitch, InputSwitchChangeEvent } from "primereact/inputswitch";
 
 export default function ManagerRolePermission() {
     const [filters, setFilters] = useState<DataTableFilterMeta>();
@@ -17,6 +16,7 @@ export default function ManagerRolePermission() {
     const [globalFilterValue, setGlobalFilterValue] = useState<string>('');
 
     const [users, setUsers] = useState<User[]>();
+    const [renderApi, setRenderApi] = useState<boolean>(false);
     const [roles, setRoles] = useState<Role[]>();
     const [permissions, setPermissions] = useState<Permission[]>();
 
@@ -37,7 +37,7 @@ export default function ManagerRolePermission() {
         }
 
         fetchDataUser();
-    }, []);
+    }, [renderApi]);
 
     const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -70,33 +70,35 @@ export default function ManagerRolePermission() {
     const bodyActionTemplate = (rowData: User) => {
         return (
             <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{ cursor: "pointer", padding: "10px" }} onClick={() => HandleClickEdit(rowData)}>
-                    <i className="pi pi-pencil" style={{ fontSize: '1.5rem' }}></i>
-                </div>
-                <div style={{ cursor: "pointer" }} onClick={() => HandleClickRemove(rowData)}>
-                    <i className="pi pi-trash" style={{ fontSize: '1.5rem' }}></i>
+                <div style={{ cursor: "pointer", padding: "10px" }} onClick={() => HandleClickAddRole(rowData)}>
+                    <i className="pi pi-plus" style={{ fontSize: '1.5rem' }}></i>
                 </div>
             </div>
         );
     };
 
-    const HandleClickEdit = async (user: User) => {
-        const userId = user.id;
+    const HandleClickAddRole = async (rowData: User) => {
+        const userId = rowData.id;
         if (userId) {
             console.log(userId)
         }
     };
 
-    const HandleClickRemove = async (user: User) => {
-        const userId = user.id;
-        if (userId) {
-            const resRemoveUser = await ApiDeletedUser(userId);
-            if(resRemoveUser && resRemoveUser.code === 200){
-                toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'User has been disabled', life: 3000 });
-            } else{
-                toast.current?.show({ severity: 'success', summary: 'Faild', detail: 'Erro action disabled user', life: 8000 });
+    const BodyStatusTemplate = (rowData: User) => {
+        const isActive = rowData.isActive;
+        const idUser = rowData.id;
+
+        const UpdateStatusUser = async () => {
+            const res = await ApiUpdateStatusUser(idUser, isActive);
+            if (res && res.code === 200) {
+                setRenderApi(!renderApi);
             }
         }
+        return (
+            <>
+                <InputSwitch checked={isActive} onChange={UpdateStatusUser} />
+            </>
+        )
     };
 
     const header = renderHeader();
@@ -108,9 +110,9 @@ export default function ManagerRolePermission() {
                 <DataTable value={users} paginator rows={10} dataKey="id" filters={filters} loading={loading}
                     header={header} emptyMessage="No user found.">
                     <Column field="user" header="User" style={{ minWidth: '12rem' }} body={bodyUserTemplate} />
-                    <Column field="role" header="Role" style={{ minWidth: '12rem' }} body={BodyUserRoleTemplate} />
-                    <Column field="action" header="Action" style={{ minWidth: '12rem' }} body={bodyActionTemplate} />
                     <Column field="isDeleted" header="Status" style={{ minWidth: '12rem' }} body={BodyStatusTemplate} />
+                    <Column field="role" header="Role" style={{ minWidth: '12rem' }} body={BodyUserRoleTemplate} />
+                    <Column field="addRole" header="AddRole" style={{ minWidth: '12rem' }} body={bodyActionTemplate} />
                 </DataTable>
             </div>
         </>
@@ -163,23 +165,3 @@ const RoleDetail = ({ roleId }: PropRoleDetail) => {
         background: '#ff0'
     }}>{role?.name}</span>
 }
-
-const BodyStatusTemplate = (rowData: User) => {
-    const [active, setActive] = useState<boolean>(false);
-    const id: string = rowData.id;
-    const fetchDataUserRole = async () => {
-        // const userRoleRes = await ApiGetUserRoleByIdUser(rowData.id);
-        // if (userRoleRes && userRoleRes.code === 200) {
-        //     setUserRoles(userRoleRes.data);
-        // }
-    }
-    useEffect(() => {
-        fetchDataUserRole()
-    }, [id]);
-
-    return (
-        <>
-            
-        </>
-    )
-};

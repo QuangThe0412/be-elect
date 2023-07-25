@@ -27,7 +27,7 @@ export const ConvertFormData = async (data: any, file?: any) => {
 /**
  * Tooken test
  */
-export const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjY0NDc0MzJkNmMxYzQ0ZWVkOWE0NjI1OCIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjpbImFkbWluIiwicmVhZCJdLCJuYmYiOjE2ODk4MjU5NDcsImV4cCI6MTY5MjQxNzk0NywiaWF0IjoxNjg5ODI1OTQ3fQ.l0oIdfcoIoBteGUXYurVsIcHog53eNmkGIBlFr0_Cx0';
+export const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjY0NDc0MzJkNmMxYzQ0ZWVkOWE0NjI1OCIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjpbImFkbWluIiwicmVhZCJdLCJuYmYiOjE2OTAxNzMzNzYsImV4cCI6MTY5Mjc2NTM3NiwiaWF0IjoxNjkwMTczMzc2fQ.tPMGwf_wvUB1O5XpR7Nmlu67SsPquaLlZb6tTgua1FQ';
 // export const domain = 'http://thedevapi.somee.com';
 // export const domain = 'https://shjno190.bsite.net';
 export const domain = 'https://localhost:7027';
