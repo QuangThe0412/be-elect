@@ -3,12 +3,14 @@ import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { ApiGetUsers, ApiUpdateStatusUser, User } from '@/services/userApi';
-import { ApiGetRoleDetails, ResponseRoleApi, Role } from '@/services/roleApi';
+import { ApiGetRoleDetails, ApiGetRoles, ResponseRoleApi, Role } from '@/services/roleApi';
 import { Permission } from '@/services/permissionApi';
 import { ApiGetUserRoleByIdUser, UserRole } from '@/services/userRoleApi';
 import { RolePermission } from '@/services/rolePermission';
 import { Toast } from 'primereact/toast';
 import { InputSwitch, InputSwitchChangeEvent } from "primereact/inputswitch";
+import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
+import { SelectItem, SelectItemOptionsType } from 'primereact/selectitem';
 
 export default function ManagerRolePermission() {
     const [filters, setFilters] = useState<DataTableFilterMeta>();
@@ -112,56 +114,59 @@ export default function ManagerRolePermission() {
                     <Column field="user" header="User" style={{ minWidth: '12rem' }} body={bodyUserTemplate} />
                     <Column field="isDeleted" header="Status" style={{ minWidth: '12rem' }} body={BodyStatusTemplate} />
                     <Column field="role" header="Role" style={{ minWidth: '12rem' }} body={BodyUserRoleTemplate} />
-                    <Column field="addRole" header="AddRole" style={{ minWidth: '12rem' }} body={bodyActionTemplate} />
+                    {/* <Column field="addRole" header="AddRole" style={{ minWidth: '12rem' }} body={bodyActionTemplate} /> */}
                 </DataTable>
             </div>
         </>
     );
 }
 
+interface RoleABC {
+    name: string;
+    id: string;
+}
+
 const BodyUserRoleTemplate = (rowData: User) => {
+    const idUser: string = rowData.id;
     const [userRoles, setUserRoles] = useState<UserRole[]>([]);
-    const id: string = rowData.id;
+    const [selectRoles, setSelectRoles] = useState<Role[]>([]);
+  
+    const fetchDataRole = async () => {
+      const roleRes = await ApiGetRoles();
+      if (roleRes && roleRes.code === 200) {
+        setSelectRoles(roleRes.data);
+      }
+    };
+  
+    useEffect(() => {
+      fetchDataRole();
+    }, []);
+  
     const fetchDataUserRole = async () => {
-        const userRoleRes = await ApiGetUserRoleByIdUser(rowData.id);
-        if (userRoleRes && userRoleRes.code === 200) {
-            setUserRoles(userRoleRes.data);
-        }
-    }
+      const userRoleRes = await ApiGetUserRoleByIdUser(idUser);
+      if (userRoleRes && userRoleRes.code === 200) {
+        console.log(userRoleRes)
+        setUserRoles(userRoleRes.data);
+      }
+    };
+  
     useEffect(() => {
-        fetchDataUserRole()
-    }, [id]);
-
+      fetchDataUserRole();
+    }, [idUser]);
+  
     return (
-        <>
-            {userRoles.map(roles => <RoleDetail key={roles.roleId} roleId={roles.roleId} />)}
-        </>
-    )
-};
-
-type PropRoleDetail = {
-    roleId?: string
-}
-
-const RoleDetail = ({ roleId }: PropRoleDetail) => {
-    const [role, setRole] = useState<Role>()
-
-    const fetchRoleById = async (roleId: string) => {
-        const response = await ApiGetRoleDetails(roleId)
-        if (response && response.code === 200) {
-            setRole(response.data)
-        }
-    }
-    useEffect(() => {
-        if (roleId) {
-            fetchRoleById(roleId)
-        }
-
-    }, [roleId]);
-
-    return <span style={{
-        padding: '2px 4px',
-        border: '1px solid purple',
-        background: '#ff0'
-    }}>{role?.name}</span>
-}
+      <>
+        <div className="card flex justify-content-center">
+          <MultiSelect
+            value={selectRoles}
+            onChange={(e: MultiSelectChangeEvent) => setSelectRoles(e.value)}
+            options={userRoles}
+            optionLabel="name"
+            placeholder="Select Role"
+            maxSelectedLabels={9}
+            className="w-full md:w-20rem"
+          />
+        </div>
+      </>
+    );
+  };
