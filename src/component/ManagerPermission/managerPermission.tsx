@@ -11,8 +11,8 @@ import { InputSwitch } from "primereact/inputswitch";
 import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
 
 interface RoleOptions {
-    name: string;
     id: string;
+    name: string;
 }
 
 export default function ManagerRolePermission() {
@@ -162,25 +162,28 @@ const BodyUserRoleTemplate = (rowData: User) => {
 
     const HandleSetUserRole = async (e: MultiSelectChangeEvent) => {
         let isActive = true;
-        console.log(e.value)
         if (e.value && e.value.length > 0) {
             const current: RoleOptions = e.selectedOption;
             const currentIdRole = current.id;
+// const idUserRole = 
+            // const userRole: UserRole = {
+            //     id: '',
+            //     userId: idUser,
+            //     roleId: currentIdRole,
+            //     dateFix: null,
+            //     dateCreate: null,
+            //     isActive: isActive,
+            // }
 
-            const userRole = {
-                id: '',
-                userId: idUser,
-                roleId: currentIdRole,
-                dateFix: null,
-                dateCreate: null,
-                isActive: isActive,
-            }
+            // const res = await ApiAddUserRole(userRole);
+            // console.log({ res })
+            // if (res) {
+            //     if (res.code === 200) {
 
-            const res = await ApiAddUserRole(userRole);
-            console.log({ res })
-            if(res && res.code === 200){
+            //     } else {
 
-            }
+            //     }
+            // }
         } else {
             isActive = false;
         }

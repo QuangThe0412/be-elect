@@ -1,4 +1,4 @@
-import { ConvertFormData, domain, token } from "./common";
+import { ConvertFormData, capitalizeKeys, domain, token } from "./common";
 
 export interface UserRole {
   id: string,
@@ -43,15 +43,18 @@ export const ApiGetUserRoleByIdUser = async (idUser: string) => {
  * @param UserRoles thông tin được tạo
  * @returns 
  */
-export const ApiAddUserRole = async (data: UserRole) => {
+export const ApiAddUserRole = async (data: any) => {
   try {
-    const formData = await ConvertFormData(data);
+    const convertedData = capitalizeKeys(data);
+
+    console.log(convertedData);
     const response = await fetch(`${domain}/api/userroles`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      body: formData,
+      body: JSON.stringify(convertedData),
     });
 
     if (response && response.ok) {
