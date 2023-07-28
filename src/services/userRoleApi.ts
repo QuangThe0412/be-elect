@@ -2,7 +2,7 @@ import { ConvertFormData, domain, token } from "./common";
 
 export interface UserRole {
   id: string,
-  UserRoleId: string | null,
+  userId: string | null,
   roleId: string,
   dateFix: Date | null,
   dateCreate: Date | null,
@@ -46,7 +46,6 @@ export const ApiGetUserRoleByIdUser = async (idUser: string) => {
 export const ApiAddUserRole = async (data: UserRole) => {
   try {
     const formData = await ConvertFormData(data);
-
     const response = await fetch(`${domain}/api/userroles`, {
       method: 'POST',
       headers: {

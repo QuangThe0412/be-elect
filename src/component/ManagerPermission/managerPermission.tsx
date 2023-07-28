@@ -5,12 +5,15 @@ import { InputText } from 'primereact/inputtext';
 import { ApiGetUsers, ApiUpdateStatusUser, User } from '@/services/userApi';
 import { ApiGetRoleDetails, ApiGetRoles, ResponseRoleApi, Role } from '@/services/roleApi';
 import { Permission } from '@/services/permissionApi';
-import { ApiGetUserRoleByIdUser, UserRole } from '@/services/userRoleApi';
-import { RolePermission } from '@/services/rolePermission';
+import { ApiAddUserRole, ApiGetUserRoleByIdUser, UserRole } from '@/services/userRoleApi';
 import { Toast } from 'primereact/toast';
-import { InputSwitch, InputSwitchChangeEvent } from "primereact/inputswitch";
+import { InputSwitch } from "primereact/inputswitch";
 import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
-import { SelectItem, SelectItemOptionsType } from 'primereact/selectitem';
+
+interface RoleOptions {
+    name: string;
+    id: string;
+}
 
 export default function ManagerRolePermission() {
     const [filters, setFilters] = useState<DataTableFilterMeta>();
@@ -19,10 +22,6 @@ export default function ManagerRolePermission() {
 
     const [users, setUsers] = useState<User[]>();
     const [renderApi, setRenderApi] = useState<boolean>(false);
-    const [roles, setRoles] = useState<Role[]>();
-    const [permissions, setPermissions] = useState<Permission[]>();
-
-    const [rolePermissions, setRolePermissions] = useState<RolePermission[]>();
     const toast = useRef<Toast>(null);
 
     const show = () => {
@@ -121,52 +120,85 @@ export default function ManagerRolePermission() {
     );
 }
 
-interface RoleABC {
-    name: string;
-    id: string;
-}
-
 const BodyUserRoleTemplate = (rowData: User) => {
-    const idUser: string = rowData.id;
-    const [userRoles, setUserRoles] = useState<UserRole[]>([]);
-    const [selectRoles, setSelectRoles] = useState<Role[]>([]);
-  
+    const idUser: string = rowData?.id || '';
+    const [userRoles, setUserRoles] = useState<RoleOptions[]>([]);
+    const [roleOptions, setRoleOptions] = useState<RoleOptions[]>([]);
+
     const fetchDataRole = async () => {
-      const roleRes = await ApiGetRoles();
-      if (roleRes && roleRes.code === 200) {
-        setSelectRoles(roleRes.data);
-      }
+        const roleRes = await ApiGetRoles();
+        if (roleRes && roleRes.code === 200) {
+            const listRoles: RoleOptions[] = roleRes.data.map(item => ({
+                id: item.id,
+                name: item.name || ''
+            }))
+            setRoleOptions(listRoles);
+        }
     };
-  
+
     useEffect(() => {
-      fetchDataRole();
+        fetchDataRole();
     }, []);
-  
+
     const fetchDataUserRole = async () => {
-      const userRoleRes = await ApiGetUserRoleByIdUser(idUser);
-      if (userRoleRes && userRoleRes.code === 200) {
-        console.log(userRoleRes)
-        setUserRoles(userRoleRes.data);
-      }
+        const userRoleRes = await ApiGetUserRoleByIdUser(idUser);
+        if (userRoleRes && userRoleRes.code === 200) {
+            const arrSelectedRole: RoleOptions[] = [];
+            userRoleRes.data.forEach(item => {
+                const roleSelected = roleOptions.find(role => role.id === item.roleId);
+                if (roleSelected) {
+                    arrSelectedRole.push(roleSelected)
+                }
+            });
+            setUserRoles(arrSelectedRole);
+        }
     };
-  
+
     useEffect(() => {
-      fetchDataUserRole();
-    }, [idUser]);
-  
+        if (roleOptions.length) {
+            fetchDataUserRole();
+        }
+    }, [roleOptions.length]);
+
+    const HandleSetUserRole = async (e: MultiSelectChangeEvent) => {
+        let isActive = true;
+        console.log(e.value)
+        if (e.value && e.value.length > 0) {
+            const current: RoleOptions = e.selectedOption;
+            const currentIdRole = current.id;
+
+            const userRole = {
+                id: '',
+                userId: idUser,
+                roleId: currentIdRole,
+                dateFix: null,
+                dateCreate: null,
+                isActive: isActive,
+            }
+
+            const res = await ApiAddUserRole(userRole);
+            console.log({ res })
+            if(res && res.code === 200){
+
+            }
+        } else {
+            isActive = false;
+        }
+
+    };
+
     return (
-      <>
         <div className="card flex justify-content-center">
-          <MultiSelect
-            value={selectRoles}
-            onChange={(e: MultiSelectChangeEvent) => setSelectRoles(e.value)}
-            options={userRoles}
-            optionLabel="name"
-            placeholder="Select Role"
-            maxSelectedLabels={9}
-            className="w-full md:w-20rem"
-          />
+            <MultiSelect
+                value={userRoles}
+                onChange={HandleSetUserRole}
+                options={roleOptions}
+                optionLabel="name"
+                placeholder="Select Role"
+                maxSelectedLabels={3}
+                className="w-full md:w-20rem"
+                filter
+            />
         </div>
-      </>
     );
-  };
+};
