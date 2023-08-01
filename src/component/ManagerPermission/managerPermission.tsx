@@ -3,15 +3,14 @@ import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { ApiGetUsers, ApiUpdateStatusUser, User } from '@/services/userApi';
-import { ApiGetRoleDetails, ApiGetRoles, ResponseRoleApi, Role } from '@/services/roleApi';
-import { Permission } from '@/services/permissionApi';
-import { ApiAddUserRole, ApiGetUserRoleByIdUser, UserRole } from '@/services/userRoleApi';
+import { ApiGetRoles } from '@/services/roleApi';
+import { AddOrUpdateUserRole, ApiGetUserRoleByIdUser, UserRole } from '@/services/userRoleApi';
 import { Toast } from 'primereact/toast';
 import { InputSwitch } from "primereact/inputswitch";
 import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
 
 interface RoleOptions {
-    id: string;
+    idRole: string;
     name: string;
 }
 
@@ -19,26 +18,42 @@ export default function ManagerRolePermission() {
     const [filters, setFilters] = useState<DataTableFilterMeta>();
     const [loading, setLoading] = useState<boolean>(true);
     const [globalFilterValue, setGlobalFilterValue] = useState<string>('');
+    const [roleOptions, setRoleOptions] = useState<RoleOptions[]>([]);
 
     const [users, setUsers] = useState<User[]>();
-    const [renderApi, setRenderApi] = useState<boolean>(false);
     const toast = useRef<Toast>(null);
 
     const show = () => {
         toast.current?.show({ severity: 'info', summary: 'Info', detail: 'Message Content' });
     };
 
-    useEffect(() => {
-        const fetchDataUser = async () => {
-            const userRes = await ApiGetUsers();
-            if (userRes && userRes.code === 200) {
-                setUsers(userRes.data);
-                setLoading(false);
-            }
+    const fetchDataRole = async () => {
+        const roleRes = await ApiGetRoles();
+        if (roleRes && roleRes.code === 200) {
+            const listRoles: RoleOptions[] = roleRes.data.map(item => ({
+                idRole: item.id,
+                name: item.name || ''
+            }))
+            setRoleOptions(listRoles);
         }
+    };
 
-        fetchDataUser();
-    }, [renderApi]);
+    useEffect(() => {
+        fetchDataRole();
+    }, []);
+
+    const fetchDataUser = async () => {
+        setLoading(true)
+        const userRes = await ApiGetUsers();
+        if (userRes && userRes.code === 200) {
+            setUsers(userRes.data);
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        if (loading) fetchDataUser()
+    }, [loading])
 
     const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -68,36 +83,18 @@ export default function ManagerRolePermission() {
         </>;
     };
 
-    const bodyActionTemplate = (rowData: User) => {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{ cursor: "pointer", padding: "10px" }} onClick={() => HandleClickAddRole(rowData)}>
-                    <i className="pi pi-plus" style={{ fontSize: '1.5rem' }}></i>
-                </div>
-            </div>
-        );
-    };
-
-    const HandleClickAddRole = async (rowData: User) => {
-        const userId = rowData.id;
-        if (userId) {
-            console.log(userId)
-        }
-    };
-
     const BodyStatusTemplate = (rowData: User) => {
-        const isActive = rowData.isActive;
-        const idUser = rowData.id;
-
-        const UpdateStatusUser = async () => {
-            const res = await ApiUpdateStatusUser(idUser, isActive);
+        let isActive = rowData.isActive;
+        const UpdateStatusUser = async (e:any) => {
+            rowData.isActive = e.target.value;
+            const res = await ApiUpdateStatusUser(rowData);
             if (res && res.code === 200) {
-                setRenderApi(!renderApi);
+                setLoading(prev => !prev);
             }
         }
         return (
             <>
-                <InputSwitch checked={isActive} onChange={UpdateStatusUser} />
+                <InputSwitch checked={isActive} onChange={(e:any) => UpdateStatusUser(e)} />
             </>
         )
     };
@@ -112,41 +109,32 @@ export default function ManagerRolePermission() {
                     header={header} emptyMessage="No user found.">
                     <Column field="user" header="User" style={{ minWidth: '12rem' }} body={bodyUserTemplate} />
                     <Column field="isDeleted" header="Status" style={{ minWidth: '12rem' }} body={BodyStatusTemplate} />
-                    <Column field="role" header="Role" style={{ minWidth: '12rem' }} body={BodyUserRoleTemplate} />
-                    {/* <Column field="addRole" header="AddRole" style={{ minWidth: '12rem' }} body={bodyActionTemplate} /> */}
+                    <Column field="role" header="Role" style={{ minWidth: '12rem' }} body={(u: User) => <BodyUserRoleTemplate rowData={u} stateLoading={setLoading} fetchDataRoleOptions ={roleOptions}/>} />
                 </DataTable>
             </div>
         </>
     );
 }
+type PropBodyUserRoleTemplate = {
+    rowData: User,
+    stateLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    fetchDataRoleOptions: RoleOptions[],
+}
 
-const BodyUserRoleTemplate = (rowData: User) => {
+const BodyUserRoleTemplate = ({ rowData, stateLoading ,fetchDataRoleOptions}: PropBodyUserRoleTemplate) => {
     const idUser: string = rowData?.id || '';
     const [userRoles, setUserRoles] = useState<RoleOptions[]>([]);
-    const [roleOptions, setRoleOptions] = useState<RoleOptions[]>([]);
-
-    const fetchDataRole = async () => {
-        const roleRes = await ApiGetRoles();
-        if (roleRes && roleRes.code === 200) {
-            const listRoles: RoleOptions[] = roleRes.data.map(item => ({
-                id: item.id,
-                name: item.name || ''
-            }))
-            setRoleOptions(listRoles);
-        }
-    };
-
-    useEffect(() => {
-        fetchDataRole();
-    }, []);
+    const [isLoad, setIsLoad] = useState(true);
 
     const fetchDataUserRole = async () => {
+        setIsLoad(true);
         const userRoleRes = await ApiGetUserRoleByIdUser(idUser);
+        setIsLoad(false);
         if (userRoleRes && userRoleRes.code === 200) {
             const arrSelectedRole: RoleOptions[] = [];
             userRoleRes.data.forEach(item => {
-                const roleSelected = roleOptions.find(role => role.id === item.roleId);
-                if (roleSelected) {
+                const roleSelected = fetchDataRoleOptions.find(role => role.idRole === item.roleId);
+                if (roleSelected && item.isActive) {
                     arrSelectedRole.push(roleSelected)
                 }
             });
@@ -155,53 +143,46 @@ const BodyUserRoleTemplate = (rowData: User) => {
     };
 
     useEffect(() => {
-        if (roleOptions.length) {
+        if (fetchDataRoleOptions.length) {
             fetchDataUserRole();
         }
-    }, [roleOptions.length]);
+    }, [fetchDataRoleOptions.length]);
 
     const HandleSetUserRole = async (e: MultiSelectChangeEvent) => {
-        let isActive = true;
-        if (e.value && e.value.length > 0) {
-            const current: RoleOptions = e.selectedOption;
-            const currentIdRole = current.id;
-// const idUserRole = 
-            // const userRole: UserRole = {
-            //     id: '',
-            //     userId: idUser,
-            //     roleId: currentIdRole,
-            //     dateFix: null,
-            //     dateCreate: null,
-            //     isActive: isActive,
-            // }
+        const arrValue = e.value;
+        const selectedIdRole = e.selectedOption.idRole;
+        const isActive = arrValue.some((item: RoleOptions) => item.idRole === selectedIdRole);
 
-            // const res = await ApiAddUserRole(userRole);
-            // console.log({ res })
-            // if (res) {
-            //     if (res.code === 200) {
-
-            //     } else {
-
-            //     }
-            // }
-        } else {
-            isActive = false;
+        const userRole: UserRole = {
+            id: '',
+            userId: idUser,
+            roleId: selectedIdRole,
+            dateFix: null,
+            dateCreate: null,
+            isActive: isActive,
         }
 
+        const res = await AddOrUpdateUserRole(userRole);
+        if (res) {
+            if (res.code === 200 || res.code === 201) {
+                stateLoading(true)
+                fetchDataUserRole()
+            }
+        }
     };
 
     return (
         <div className="card flex justify-content-center">
-            <MultiSelect
+            {!isLoad && <MultiSelect
                 value={userRoles}
                 onChange={HandleSetUserRole}
-                options={roleOptions}
+                options={fetchDataRoleOptions}
                 optionLabel="name"
                 placeholder="Select Role"
                 maxSelectedLabels={3}
                 className="w-full md:w-20rem"
                 filter
-            />
+            />}
         </div>
     );
 };

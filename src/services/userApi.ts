@@ -123,12 +123,9 @@ export const ApiUpdateUser = async (data: User, file: any) => {
  * @param id id User
  * @returns 
  */
-export const ApiUpdateStatusUser = async (id: string, status: boolean) => {
+export const ApiUpdateStatusUser = async (data:User) => {
   try {
-    const data = JSON.stringify({
-      id: id,
-      isActive: !status,
-    });
+    const formData = JSON.stringify(data);
 
     const response = await fetch(`${domain}/api/users`, {
       method: 'PATCH',
@@ -136,7 +133,7 @@ export const ApiUpdateStatusUser = async (id: string, status: boolean) => {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: data,
+      body: formData,
     });
 
     if (response && response.ok) {
