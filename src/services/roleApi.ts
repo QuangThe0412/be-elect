@@ -6,7 +6,7 @@ export interface Role {
     description: string | null,
     dateFix: Date | null,
     dateCreate: Date | null,
-    isDeleted : boolean,
+    isActive : boolean,
 };
   
 export interface ResponseRoleApi {
@@ -98,15 +98,15 @@ export interface ResponseRoleApiDetail {
    * @param file 
    * @returns 
    */
-  export const ApiUpdateRole = async (data: Role, file: any) => {
+  export const ApiUpdateRole = async (data: Role) => {
     try {
-      const formData = await ConvertFormData(data, file);
       const response = await fetch(`${domain}/api/roles`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: formData,
+        body: JSON.stringify(data),
       });
   
       if (response && response.ok) {
