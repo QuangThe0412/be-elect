@@ -6,6 +6,7 @@ export interface Role {
     description: string | null,
     dateFix: Date | null,
     dateCreate: Date | null,
+    isDeleted : boolean,
 };
   
 export interface ResponseRoleApi {
